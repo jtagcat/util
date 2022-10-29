@@ -66,3 +66,33 @@ func TestBatch(t *testing.T) {
 
 	wg.Wait()
 }
+
+// no limits on chan
+// not closing chan
+func TestBatchNoConstraints(t *testing.T) {
+	stream, batched := make(chan int), make(chan []int)
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		want := []int{0, 1, 2, 3}
+
+		assert.Equal(t, want, <-batched)
+
+		assert.Equal(t, 0, len(batched))
+	}()
+
+	go func() {
+		simple.Batch(4, 100*time.Millisecond, stream, batched)
+	}()
+
+	// 4 batch
+	for i := 0; i < 4; i++ {
+		stream <- i
+	}
+
+	wg.Wait()
+}
