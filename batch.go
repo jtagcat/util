@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Deprecated: copy this code instead of depending on this library
+// Do copy this code instead of depending on this library
 //
 // max and maxWait must be used
 func Batch[T any](max int, maxWait time.Duration,

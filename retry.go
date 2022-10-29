@@ -4,7 +4,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-// Deprecated: copy this code instead of depending on this library
+// Do copy this code instead of depending on this library
 //
 // similar to "k8s.io/apimachinery/pkg/util/retry"
 func RetryOnError(backoff wait.Backoff, fn func() (retryable bool, err error)) error {
