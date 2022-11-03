@@ -1,4 +1,4 @@
-package simple
+package util
 
 import (
 	"time"
@@ -11,10 +11,10 @@ func Batch[T any](max int, maxWait time.Duration,
 	stream <-chan T, batched chan<- []T,
 ) {
 	if max < 2 {
-		panic("simple.Batch: max must be at least 2")
+		panic("util.Batch: max must be at least 2")
 	}
 	if maxWait <= 0 {
-		panic("simple.Batch: maxWait must be positive")
+		panic("util.Batch: maxWait must be positive")
 	}
 
 	for {

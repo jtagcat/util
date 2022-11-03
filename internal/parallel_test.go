@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jtagcat/simple/internal"
+	"github.com/jtagcat/util/internal"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sync/errgroup"
 )

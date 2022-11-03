@@ -1,4 +1,4 @@
-module github.com/jtagcat/simple
+module github.com/jtagcat/util
 
 go 1.18
 

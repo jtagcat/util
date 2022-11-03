@@ -1,4 +1,4 @@
-package simple
+package util
 
 import (
 	"k8s.io/apimachinery/pkg/util/wait"
