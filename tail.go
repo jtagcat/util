@@ -39,11 +39,6 @@ type Tailable struct {
 var ErrScatteredFiles = errors.New("all Tailable files must be in the same directory")
 
 // Unstable, beta
-func TailFile(ctx context.Context, name string, offset int64, whence int) (<-chan *Line, <-chan error, error) {
-	return TailFiles(ctx, []Tailable{{Name: name, Offset: offset, Whence: whence}})
-}
-
-// Unstable, beta
 //
 // All files must be in the same directory.
 // Channels will be closed after file is deleted //TODO:
