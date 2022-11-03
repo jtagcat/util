@@ -14,12 +14,14 @@ import (
 func TestTailFileAddNothing(t *testing.T) {
 	t.Parallel()
 	ctx, name := context.Background(), filepath.Join(t.TempDir(), "foo")
-	os.WriteFile(name, nil, 0o600)
+	assert.Nil(t,
+		os.WriteFile(name, nil, 0o600))
 
 	lines, errs, err := util.TailFile(ctx, name, 0, io.SeekStart)
 	assert.Nil(t, err)
 
-	os.WriteFile(name, nil, 0o600)
+	assert.Nil(t,
+		os.WriteFile(name, nil, 0o600))
 
 	select {
 	case e := <-errs:
