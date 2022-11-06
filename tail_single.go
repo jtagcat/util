@@ -39,6 +39,7 @@ func tailSingleFile(ctx context.Context,
 
 	wg.Add(1)
 	go func() {
+		// no need to lock/unlock orderedLineChan, as we only have one same-named file across its life
 		fileHandle(sctx, *file, true, &orderedLineChan{c: lineChan}, errChan)
 		wg.Done()
 	}()

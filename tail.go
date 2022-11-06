@@ -170,9 +170,12 @@ func tailFiles(ctx context.Context,
 
 				file.wakeup = make(chan struct{}, 1)
 
-				file.lineChan.Lock()
 				// do not give pointer to file, as multiple FDs with same name may exist, with different wakeups
-				go fileHandle(ctx, *file.Tailable, isFakeCreate, &file.lineChan, errChan)
+				go func() {
+					file.lineChan.Lock()
+					fileHandle(ctx, *file.Tailable, isFakeCreate, &file.lineChan, errChan)
+					file.lineChan.Unlock()
+				}()
 
 			case fsnotify.Write:
 				select {
@@ -191,8 +194,6 @@ type orderedLineChan struct {
 
 // Handles tailing a file within its lifespan
 func fileHandle(ctx context.Context, file Tailable, useOffset bool, lineChan *orderedLineChan, errChan chan<- error) {
-	defer lineChan.Unlock()
-
 	f, err := os.Open(file.Name)
 	if err != nil && !errors.Is(err, os.ErrNotExist) { // ignore ErrNotExist, as it may have been race deleted
 		errChan <- err
