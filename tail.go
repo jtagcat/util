@@ -15,7 +15,7 @@ import (
 
 type Line struct {
 	Filename  *string
-	String    string
+	Bytes     []byte
 	EndOffset int64 // io.SeekStart
 }
 
@@ -272,22 +272,22 @@ func detectTruncation(f *os.File, offset int64) (int64, error) {
 	return offset, nil
 }
 
-func readToEOF(b *bufio.Reader, name *string, offset int64, c chan<- *Line) (int64, error) {
+func readToEOF(buf *bufio.Reader, name *string, offset int64, c chan<- *Line) (int64, error) {
 	for {
-		s, err := b.ReadString(byte('\n'))
-		offset += int64(len(s))
+		b, err := buf.ReadBytes('\n')
+		offset += int64(len(b))
 
 		if err != nil && !errors.Is(err, io.EOF) {
 			return offset, err
 		}
 
 		if err == nil {
-			s = s[:len(s)-1] // remove \n
+			b = b[:len(b)-1] // remove \n
 		}
 
 		c <- &Line{
 			Filename:  name,
-			String:    s,
+			Bytes:     b,
 			EndOffset: offset,
 		}
 

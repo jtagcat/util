@@ -13,6 +13,9 @@ import (
 
 // TODO: symlink change
 // TODO: write with file not changing
+// TODO: replace file
+
+// expected: fail
 func TestExampleSingle(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
@@ -30,7 +33,7 @@ func TestExampleSingle(t *testing.T) {
 		t.FailNow()
 	case s := <-l:
 		assert.Equal(t, file, *s.Filename)
-		assert.Equal(t, "hello", s.String)
+		assert.Equal(t, "hello", string(s.Bytes))
 	}
 
 	// empty chan
@@ -50,14 +53,14 @@ E:
 	// last double empty
 
 	s := <-l
-	assert.Equal(t, "world", s.String)
+	assert.Equal(t, "world", string(s.Bytes))
 	s = <-l
-	assert.Equal(t, "space", s.String)
+	assert.Equal(t, "space", string(s.Bytes))
 	select {
 	case <-e:
 		t.FailNow()
 	case s := <-l:
-		assert.Equal(t, "", s.String)
+		assert.Equal(t, len(s.Bytes), 0)
 		assert.Equal(t, file, *s.Filename)
 	}
 
@@ -71,7 +74,7 @@ E:
 	case <-e:
 		t.FailNow()
 	case s := <-l:
-		assert.Equal(t, "bar", s.String)
+		assert.Equal(t, "bar", string(s.Bytes))
 		assert.Equal(t, file, *s.Filename)
 	}
 
@@ -85,7 +88,7 @@ E:
 	case <-e:
 		t.FailNow()
 	case s := <-l:
-		assert.Equal(t, "two", s.String)
+		assert.Equal(t, "two", string(s.Bytes))
 		assert.Equal(t, file, *s.Filename)
 	}
 
