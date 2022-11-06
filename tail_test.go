@@ -106,6 +106,7 @@ func append(name, s string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	if _, err := f.Write([]byte(s)); err != nil {
 		return err

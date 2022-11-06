@@ -197,6 +197,7 @@ func fileHandle(ctx context.Context, file Tailable, useOffset bool, lineChan *or
 		errChan <- err
 		return
 	}
+	defer f.Close()
 
 	var offset int64
 	if useOffset {
