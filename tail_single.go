@@ -84,7 +84,7 @@ func tailSingleFile(ctx context.Context,
 				case file.wakeup <- struct{}{}:
 				default:
 				}
-			case fsnotify.Remove:
+			case fsnotify.Remove, fsnotify.Rename:
 				close(file.wakeup)
 				return
 			}
