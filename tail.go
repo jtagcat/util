@@ -14,9 +14,10 @@ import (
 )
 
 type Line struct {
-	Filename  *string
-	Bytes     []byte
-	EndOffset int64 // io.SeekStart
+	Filename   *string
+	Bytes      []byte
+	EndOffset  int64 // io.SeekStart
+	ReachedEOF bool
 }
 
 // File starts tailing file from offset and whence (os.Seek()).
@@ -286,9 +287,10 @@ func readToEOF(buf *bufio.Reader, name *string, offset int64, c chan<- *Line) (i
 		}
 
 		c <- &Line{
-			Filename:  name,
-			Bytes:     b,
-			EndOffset: offset,
+			Filename:   name,
+			Bytes:      b,
+			EndOffset:  offset,
+			ReachedEOF: err != nil,
 		}
 
 		if err != nil { // EOF
