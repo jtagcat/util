@@ -8,7 +8,7 @@ import "sync"
 //		exampleFunc(foo, bar)
 //	})
 //	defer waitGo()
-func GoWg(fn func()) (done func()) {
+func GoWg(fn func()) (wait func()) {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -17,5 +17,5 @@ func GoWg(fn func()) (done func()) {
 		wg.Done()
 	}()
 
-	return wg.Done
+	return wg.Wait
 }
