@@ -4,10 +4,10 @@ import "sync"
 
 // go <func> with single waitgroup
 //
-//	doGoWait= util.GoWg(func() {
+//	waitGo := util.GoWg(func() {
 //		exampleFunc(foo, bar)
 //	})
-//	defer done()
+//	defer waitGo()
 func GoWg(fn func()) (done func()) {
 	var wg sync.WaitGroup
 
