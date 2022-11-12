@@ -30,7 +30,15 @@ func (r *rollingFile) Current() (*os.File, error) {
 		return r.file, nil
 	}
 
+	if err := r.Close(); err != nil {
+		return nil, err
+	}
+
 	f, err := r.openFn(newName)
 	r.file = f
 	return f, err
+}
+
+func (r *rollingFile) Close() error {
+	return r.file.Close()
 }
