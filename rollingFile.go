@@ -1,6 +1,9 @@
 package util
 
-import "os"
+import (
+	"encoding/csv"
+	"os"
+)
 
 type rollingFile struct {
 	currentName func() string
@@ -28,21 +31,46 @@ func NewRollingFile(currentName func() string, openFn OpenFn) rollingFile {
 	}
 }
 
-func (r *rollingFile) Current() (*os.File, error) {
+func (r *rollingFile) Current() (_ *os.File, _ error, changed bool) {
 	newName := r.currentName()
 	if newName == r.file.Name() {
-		return r.file, nil
+		return r.file, nil, false
 	}
 
 	if err := r.Close(); err != nil {
-		return nil, err
+		return nil, err, true
 	}
 
 	f, err := r.openFn(newName)
 	r.file = f
-	return f, err
+	return f, err, true
 }
 
 func (r *rollingFile) Close() error {
 	return r.file.Close()
+}
+
+type rollingCsvAppender struct {
+	rollingFile
+
+	csv *csv.Writer
+}
+
+func NewRollingCsvAppender(currentName func() string) rollingCsvAppender {
+	return rollingCsvAppender{
+		rollingFile: rollingFile{
+			currentName: currentName,
+			openFn:      RollingAppendFn,
+		},
+	}
+}
+
+func (c *rollingCsvAppender) Current() (_ *csv.Writer, _ error, changed bool) {
+	f, err, changed := c.rollingFile.Current()
+
+	if err == nil && changed {
+		c.csv = csv.NewWriter(f)
+	}
+
+	return c.csv, err, changed
 }
