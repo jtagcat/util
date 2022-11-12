@@ -191,7 +191,7 @@ func (s *Scraper) DoRaw(urlS, method string, data []byte) (body []byte, _ error)
 		defer cancel()
 	}
 
-	done := make(chan string, 1)
+	done := make(chan error, 1)
 
 	var requestID network.RequestID
 	chromedp.ListenTarget(ctx, func(v interface{}) {
@@ -210,7 +210,9 @@ func (s *Scraper) DoRaw(urlS, method string, data []byte) (body []byte, _ error)
 					}
 				}
 
-				f.Do(fctx)
+				if err := f.Do(fctx); err != nil {
+					done <- err
+				}
 			}()
 		}
 	})
@@ -230,7 +232,10 @@ func (s *Scraper) DoRaw(urlS, method string, data []byte) (body []byte, _ error)
 		return nil, err
 	}
 
-	<-done
+	if err := <-done; err != nil {
+		return nil, err
+	}
+
 	// get downloaded bytes for request id
 	err := chromedp.Run(ctx,
 
