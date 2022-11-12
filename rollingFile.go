@@ -10,7 +10,8 @@ type rollingFile struct {
 	currentName func() string
 	openFn      func(name string) (*os.File, error)
 
-	file *os.File
+	preClose func() error
+	file     *os.File
 }
 
 type OpenFn func(name string) (*os.File, error)
@@ -42,6 +43,10 @@ func (r *rollingFile) Current() (_ *os.File, _ error, changed bool) {
 			return r.file, nil, false
 		}
 
+		if err := r.preClose(); err != nil {
+			return nil, err, true
+		}
+
 		if err := r.Close(); err != nil {
 			return nil, err, true
 		}
@@ -53,6 +58,10 @@ func (r *rollingFile) Current() (_ *os.File, _ error, changed bool) {
 }
 
 func (r *rollingFile) Close() error {
+	if err := r.preClose(); err != nil {
+		return err
+	}
+
 	return r.file.Close()
 }
 
@@ -63,12 +72,21 @@ type rollingCsvAppender struct {
 }
 
 func NewRollingCsvAppender(currentName func() string, perms fs.FileMode) rollingCsvAppender {
-	return rollingCsvAppender{
+	a := rollingCsvAppender{
 		rollingFile: rollingFile{
 			currentName: currentName,
 			openFn:      RollingAppendFn(perms),
 		},
 	}
+
+	a.preClose = func() error {
+		if a.csv != nil {
+			a.csv.Flush()
+		}
+		return nil
+	}
+
+	return a
 }
 
 func (c *rollingCsvAppender) Current() (_ *csv.Writer, _ error, changed bool) {
