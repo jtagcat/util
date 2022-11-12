@@ -1,4 +1,4 @@
-package internal
+package parallel
 
 import (
 	"sync"
@@ -6,6 +6,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
+// DO NOT USE
 // TODO: errgroup instant fail?
 // TODO: ordered results?
 // WIP

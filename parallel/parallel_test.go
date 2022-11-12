@@ -1,4 +1,4 @@
-package internal_test
+package parallel_test
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jtagcat/util/internal"
+	"github.com/jtagcat/util/parallel"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/sync/errgroup"
 )
@@ -31,7 +31,7 @@ func exampleNestedFn(line string, linenum int, returnc chan string) error {
 func TestParallel(t *testing.T) {
 	input := strings.NewReader("boo\none\ntwo\nthree\nfour")
 
-	output, err := internal.Parallel(func(g *errgroup.Group, returnc chan string) error {
+	output, err := parallel.Parallel(func(g *errgroup.Group, returnc chan string) error {
 		scanner := bufio.NewScanner(input)
 		for i := 1; scanner.Scan(); i++ {
 			line, linenum := scanner.Text(), i
