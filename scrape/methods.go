@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -165,7 +164,7 @@ func (s *Scraper) DownloadFile(urlS, outdir string) (suggested, filename, newURL
 			return "", "", "", err
 		}
 
-		if err := ioutil.WriteFile(guidPath, buf, os.ModePerm); err != nil {
+		if err := os.WriteFile(guidPath, buf, os.ModePerm); err != nil {
 			return "", "", "", err
 		}
 	}
