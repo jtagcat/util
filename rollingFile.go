@@ -4,13 +4,23 @@ import "os"
 
 type rollingFile struct {
 	currentName func() string
+	openFn      func(name string) (*os.File, error)
 
 	file *os.File
 }
 
-func NewRollingFile(currentName func() string) rollingFile {
+func NewRollingFile(currentName func() string, openFn *func(name string) (*os.File, error)) rollingFile {
+	fn := func(name string) (*os.File, error) {
+		return os.Open(name)
+	}
+
+	if openFn != nil {
+		fn = *openFn
+	}
+
 	return rollingFile{
 		currentName: currentName,
+		openFn:      fn,
 	}
 }
 
@@ -20,7 +30,7 @@ func (r *rollingFile) Current() (*os.File, error) {
 		return r.file, nil
 	}
 
-	f, err := os.Open(newName)
+	f, err := r.openFn(newName)
 	r.file = f
 	return f, err
 }
