@@ -98,3 +98,14 @@ func (c *rollingCsvAppender) Current() (_ *csv.Writer, _ error, changed bool) {
 
 	return c.csv, err, changed
 }
+
+// Writes are buffered, so Flush must eventually be called to ensure
+// that the record is written to the underlying io.Writer.
+func (c *rollingCsvAppender) WriteCurrent(record []string) error {
+	writer, err, _ := c.Current()
+	if err != nil {
+		return err
+	}
+
+	return writer.Write(record)
+}
