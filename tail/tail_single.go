@@ -1,4 +1,4 @@
-package util
+package tail
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 )
 
 // Unstable, beta
-func TailFile(ctx context.Context, name string, offset int64, whence int) (<-chan *Line, <-chan error, error) {
+func New(ctx context.Context, name string, offset int64, whence int) (<-chan *Line, <-chan error, error) {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, nil, err
@@ -20,7 +20,7 @@ func TailFile(ctx context.Context, name string, offset int64, whence int) (<-cha
 
 	lineChan, errChan := make(chan *Line), make(chan error)
 
-	go tailSingleFile(ctx, w, &Tailable{
+	go singleFile(ctx, w, &Tailable{
 		Name: name, Offset: offset, Whence: whence,
 	}, lineChan, errChan)
 
@@ -28,7 +28,7 @@ func TailFile(ctx context.Context, name string, offset int64, whence int) (<-cha
 }
 
 // assumes file exists
-func tailSingleFile(ctx context.Context,
+func singleFile(ctx context.Context,
 	w *fsnotify.Watcher, file *Tailable,
 	lineChan chan<- *Line, errChan chan<- error,
 ) {
@@ -40,7 +40,7 @@ func tailSingleFile(ctx context.Context,
 	wg.Add(1)
 	go func() {
 		// no need to lock/unlock orderedLineChan, as we only have one same-named file across its life
-		fileHandle(sctx, *file, true, &orderedLineChan{c: lineChan}, errChan)
+		fileHandle(sctx, *file, true, &orderedLines{c: lineChan}, errChan)
 		wg.Done()
 	}()
 

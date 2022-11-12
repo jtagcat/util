@@ -1,4 +1,4 @@
-package util_test
+package tail_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	util "github.com/jtagcat/util"
+	"github.com/jtagcat/util/tail"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +24,7 @@ func TestExampleSingle(t *testing.T) {
 	assert.Nil(t,
 		os.WriteFile(file, []byte("hello"), 0o600))
 
-	l, e, err := util.TailFile(context.Background(), file, 0, io.SeekStart)
+	l, e, err := tail.New(context.Background(), file, 0, io.SeekStart)
 	assert.Nil(t, err)
 
 	// first empty

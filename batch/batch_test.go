@@ -1,11 +1,11 @@
-package util_test
+package batch_test
 
 import (
 	"sync"
 	"testing"
 	"time"
 
-	util "github.com/jtagcat/util"
+	"github.com/jtagcat/util/batch"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,7 +48,7 @@ func TestBatch(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		util.Batch(4, 100*time.Millisecond, stream, batched)
+		batch.Batch(4, 100*time.Millisecond, stream, batched)
 	}()
 
 	// 4 batch + 2 timeout
@@ -86,7 +86,7 @@ func TestBatchNoConstraints(t *testing.T) {
 	}()
 
 	go func() {
-		util.Batch(4, 100*time.Millisecond, stream, batched)
+		batch.Batch(4, 100*time.Millisecond, stream, batched)
 	}()
 
 	// 4 batch

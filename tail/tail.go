@@ -1,4 +1,4 @@
-package util
+package tail
 
 import (
 	"bufio"
@@ -43,7 +43,7 @@ var ErrScatteredFiles = errors.New("all Tailable files must be in the same direc
 //
 // All files must be in the same directory.
 // Channels will be closed after file is deleted //TODO:
-func TailFiles(ctx context.Context, files []Tailable) (<-chan *Line, <-chan error, error) {
+func Files(ctx context.Context, files []Tailable) (<-chan *Line, <-chan error, error) {
 	if len(files) == 0 {
 		return nil, nil, nil
 	}
@@ -84,13 +84,13 @@ func TailFiles(ctx context.Context, files []Tailable) (<-chan *Line, <-chan erro
 
 	lineChan, errChan := make(chan *Line), make(chan error)
 
-	go tailFiles(ctx, w, &files, lineChan, errChan)
+	go multipleFiles(ctx, w, &files, lineChan, errChan)
 
 	return lineChan, errChan, err
 }
 
 // Consumes Watcher
-func tailFiles(ctx context.Context,
+func multipleFiles(ctx context.Context,
 	w *fsnotify.Watcher, files *[]Tailable,
 	lineChan chan<- *Line, errChan chan<- error,
 ) {
@@ -102,7 +102,7 @@ func tailFiles(ctx context.Context,
 	type mapWrap struct {
 		*Tailable
 		seen     bool
-		lineChan orderedLineChan
+		lineChan orderedLines
 	}
 
 	names := make(map[string]*mapWrap)
@@ -111,7 +111,7 @@ func tailFiles(ctx context.Context,
 		c := make(chan *Line)
 		names[filepath.Base(file.Name)] = &mapWrap{
 			Tailable: &file,
-			lineChan: orderedLineChan{c: c},
+			lineChan: orderedLines{c: c},
 		}
 
 		go func() { // relay files
@@ -187,13 +187,13 @@ func tailFiles(ctx context.Context,
 	}
 }
 
-type orderedLineChan struct {
+type orderedLines struct {
 	c          chan<- *Line
 	sync.Mutex // guarantee ordered lines across multiple files of same name
 }
 
 // Handles tailing a file within its lifespan
-func fileHandle(ctx context.Context, file Tailable, useOffset bool, lineChan *orderedLineChan, errChan chan<- error) {
+func fileHandle(ctx context.Context, file Tailable, useOffset bool, lineChan *orderedLines, errChan chan<- error) {
 	f, err := os.Open(file.Name)
 	if err != nil && !errors.Is(err, os.ErrNotExist) { // ignore ErrNotExist, as it may have been race deleted
 		errChan <- err
