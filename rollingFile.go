@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/csv"
+	"io/fs"
 	"os"
 )
 
@@ -20,8 +21,10 @@ func RollingOpenFn(name string) (*os.File, error) {
 }
 
 // implements OpenFn
-func RollingAppendFn(name string) (*os.File, error) {
-	return os.OpenFile(name, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o660)
+func RollingAppendFn(perms fs.FileMode) OpenFn {
+	return func(name string) (*os.File, error) {
+		return os.OpenFile(name, os.O_APPEND|os.O_WRONLY|os.O_CREATE, perms)
+	}
 }
 
 func NewRollingFile(currentName func() string, openFn OpenFn) rollingFile {
@@ -56,11 +59,11 @@ type rollingCsvAppender struct {
 	csv *csv.Writer
 }
 
-func NewRollingCsvAppender(currentName func() string) rollingCsvAppender {
+func NewRollingCsvAppender(currentName func() string, perms fs.FileMode) rollingCsvAppender {
 	return rollingCsvAppender{
 		rollingFile: rollingFile{
 			currentName: currentName,
-			openFn:      RollingAppendFn,
+			openFn:      RollingAppendFn(perms),
 		},
 	}
 }
