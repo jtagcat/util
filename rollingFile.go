@@ -9,18 +9,22 @@ type rollingFile struct {
 	file *os.File
 }
 
-func NewRollingFile(currentName func() string, openFn *func(name string) (*os.File, error)) rollingFile {
-	fn := func(name string) (*os.File, error) {
-		return os.Open(name)
-	}
+type OpenFn func(name string) (*os.File, error)
 
-	if openFn != nil {
-		fn = *openFn
-	}
+// implements OpenFn
+func RollingOpenFn(name string) (*os.File, error) {
+	return os.Open(name)
+}
 
+// implements OpenFn
+func RollingAppendFn(name string) (*os.File, error) {
+	return os.OpenFile(name, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0o660)
+}
+
+func NewRollingFile(currentName func() string, openFn OpenFn) rollingFile {
 	return rollingFile{
 		currentName: currentName,
-		openFn:      fn,
+		openFn:      openFn,
 	}
 }
 
