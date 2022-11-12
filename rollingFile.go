@@ -36,12 +36,15 @@ func NewRollingFile(currentName func() string, openFn OpenFn) rollingFile {
 
 func (r *rollingFile) Current() (_ *os.File, _ error, changed bool) {
 	newName := r.currentName()
-	if newName == r.file.Name() {
-		return r.file, nil, false
-	}
 
-	if err := r.Close(); err != nil {
-		return nil, err, true
+	if r.file != nil {
+		if newName == r.file.Name() {
+			return r.file, nil, false
+		}
+
+		if err := r.Close(); err != nil {
+			return nil, err, true
+		}
 	}
 
 	f, err := r.openFn(newName)
