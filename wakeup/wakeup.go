@@ -13,7 +13,7 @@ const contextKey = "wakeup"
 // WithWakeup returns a copy of parent with an embedded wakeup channel.
 //
 //	wctx, wake := wakeup.WithWakeup(context.Background())
-//	go wakeup.Wait(wctx, func() (goToSleep bool) {
+//	go wakeup.Wait(wctx, func(ctx context.Context) (goToSleep bool) {
 //		// do stuff
 //	})
 //
@@ -34,15 +34,15 @@ func (w wakeup) Wakeup() {
 var errNoWakeup = errors.New(fmt.Sprintf("context does not have wakeup (as value %s)", contextKey))
 
 // Wait runs function until goToSleep is true, then waits until Wakeup() or context.Done().
-func Wait(ctxWithWakeup context.Context, fn func() (goToSleep bool)) error {
-	wake, ok := ctxWithWakeup.Value(contextKey).(wakeup)
+func Wait(wctx context.Context, fn func(ctx context.Context) (goToSleep bool)) error {
+	wake, ok := wctx.Value(contextKey).(wakeup)
 	if !ok {
 		return errNoWakeup
 	}
 
 	select {
-	case <-ctxWithWakeup.Done():
-		return ctxWithWakeup.Err()
+	case <-wctx.Done():
+		return wctx.Err()
 	default:
 	}
 
@@ -50,14 +50,14 @@ func Wait(ctxWithWakeup context.Context, fn func() (goToSleep bool)) error {
 
 	run:
 		for {
-			if sleep := fn(); sleep {
+			if sleep := fn(wctx); sleep {
 				break run
 			}
 		}
 
 		select {
-		case <-ctxWithWakeup.Done():
-			return ctxWithWakeup.Err()
+		case <-wctx.Done():
+			return wctx.Err()
 
 		case _, ok := <-wake:
 			if !ok {

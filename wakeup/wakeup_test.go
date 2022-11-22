@@ -16,7 +16,7 @@ func TestWakeup(t *testing.T) {
 	waitProceed, mayProceed := false, make(chan struct{})
 
 	wctx, wake := wakeup.WithWakeup(context.Background())
-	go wakeup.Wait(wctx, func() (goToSleep bool) {
+	go wakeup.Wait(wctx, func(_ context.Context) (goToSleep bool) {
 		testCounter++
 
 		if waitProceed {
