@@ -16,21 +16,23 @@ func TestWakeup(t *testing.T) {
 	waitProceed, mayProceed := false, make(chan struct{})
 
 	wctx, wake := wakeup.WithWakeup(context.Background())
-	go wakeup.Wait(wctx, func(_ context.Context) (goToSleep bool) {
-		testCounter++
+	go func() {
+		_ = wakeup.Wait(wctx, func(_ context.Context) (goToSleep bool) {
+			testCounter++
 
-		if waitProceed {
-			waitProceed = false
-			<-mayProceed
-		}
+			if waitProceed {
+				waitProceed = false
+				<-mayProceed
+			}
 
-		if testState {
-			testState = false
-			return true
-		}
-		testState = true
-		return false
-	})
+			if testState {
+				testState = false
+				return true
+			}
+			testState = true
+			return false
+		})
+	}()
 
 	// Test initial run
 
