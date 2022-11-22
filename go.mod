@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
-	github.com/chromedp/cdproto v0.0.0-20221108233440-fad8339618ab
+	github.com/chromedp/cdproto v0.0.0-20221121013437-8e96627807c6
 	github.com/chromedp/chromedp v0.8.6
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/uuid v1.3.0
