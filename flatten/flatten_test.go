@@ -1,11 +1,11 @@
-package std_test
+package flatten_test
 
 import (
 	"os"
 	"path"
 	"testing"
 
-	"github.com/jtagcat/util/std"
+	"github.com/jtagcat/util/flatten"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,7 +18,7 @@ func TestFlatten(t *testing.T) {
 	_, err = os.Create(path.Join(dir, "hello", "world", "bar"))
 	assert.Nil(t, err)
 
-	assert.Nil(t, std.Flatten(dir))
+	assert.Nil(t, flatten.Flatten(dir))
 
 	dirS, err := os.ReadDir(dir)
 	assert.Nil(t, err)
@@ -50,5 +50,5 @@ func TestFlattenConflict(t *testing.T) {
 	_, err = os.Create(path.Join(dir, "hello", "world", "foo"))
 	assert.Nil(t, err)
 
-	assert.ErrorIs(t, std.Flatten(dir), os.ErrExist)
+	assert.ErrorIs(t, flatten.Flatten(dir), os.ErrExist)
 }
