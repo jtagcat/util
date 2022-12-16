@@ -33,4 +33,5 @@ require (
 
 // https://github.com/kubernetes/kubernetes/pull/113398
 // go get github.com/jtagcat/kubernetes/staging/src/k8s.io/apimachinery@ManagedExponentialBackoff
+// when updating this, update the reference in retry package
 replace k8s.io/apimachinery => github.com/jtagcat/kubernetes/staging/src/k8s.io/apimachinery v0.0.0-20221027124836-581f57977fff
