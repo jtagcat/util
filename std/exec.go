@@ -25,6 +25,7 @@ func RunCmdWithCtx(ctx context.Context, cmd *exec.Cmd) error {
 
 	select {
 	case <-ctx.Done():
+		_ = cmd.Cancel()
 		return ctx.Err()
 	case err := <-wait:
 		return err
