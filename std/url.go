@@ -58,3 +58,9 @@ func URLJoin(baseURL string, paths ...string) (string, error) {
 
 	return u.String(), nil
 }
+
+func URLJoinNoErr(baseURL string, paths ...string) string {
+	joined, _ := URLJoin(baseURL, paths...)
+
+	return joined
+}
