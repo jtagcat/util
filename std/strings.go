@@ -20,3 +20,16 @@ func TrimLen(s string, max int) string {
 
 	return string(r[:max])
 }
+
+// always returns [n]string; discards subelements after n
+func StableSplitN(s, sep string, n int) []string {
+	splitted := strings.SplitN(s, sep, n)
+	if len(splitted) == n {
+		return splitted
+	}
+
+	stable := make([]string, n)
+	_ = copy(stable, splitted)
+
+	return stable
+}
