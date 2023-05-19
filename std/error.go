@@ -1,6 +1,19 @@
 package std
 
-import "errors"
+import (
+	"errors"
+
+	"golang.org/x/exp/slog"
+)
+
+func SlogErr(err error) slog.Attr {
+	str := ""
+	if err != nil {
+		str = err.Error()
+	}
+
+	return slog.String("err", str)
+}
 
 // for errors.Is(err, ERr)
 type GenericErr struct {
