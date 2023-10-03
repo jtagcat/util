@@ -7,12 +7,16 @@ import (
 )
 
 func SlogErr(err error) slog.Attr {
+	return SlogNamedErr("downstreamError", err)
+}
+
+func SlogNamedErr(key string, err error) slog.Attr {
 	str := ""
 	if err != nil {
 		str = err.Error()
 	}
 
-	return slog.String("err", str)
+	return slog.String(key, str)
 }
 
 func SlogWrap(level slog.Level, msg string, args ...any) SlogError {
