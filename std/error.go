@@ -42,7 +42,11 @@ func (e SlogError) Wrap(level slog.Level, msg string, args ...any) SlogError {
 		e.highestLevel = level
 	}
 
-	e.combinedMsg = msg + ": " + e.combinedMsg
+	if e.combinedMsg == "" {
+		e.combinedMsg = msg
+	} else {
+		e.combinedMsg = msg + ": " + e.combinedMsg
+	}
 
 	e.args = append(e.args, args...)
 
