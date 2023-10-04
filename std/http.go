@@ -24,3 +24,13 @@ func GetWithContext(ctx context.Context, c *http.Client, url string) (resp *http
 	}
 	return c.Do(req)
 }
+
+func CookieByKey(cookies []*http.Cookie, key string) string {
+	for _, cookie := range cookies {
+		if cookie.Name == key {
+			return cookie.Value
+		}
+	}
+
+	return ""
+}
