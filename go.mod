@@ -9,6 +9,7 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/stretchr/testify v1.8.1
+	go.etcd.io/bbolt v1.3.7
 	golang.org/x/sync v0.1.0
 	k8s.io/apimachinery v0.26.1
 )
