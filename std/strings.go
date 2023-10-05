@@ -5,11 +5,21 @@ import (
 )
 
 // strings.Cut, but starting from last character, found is either empty or seperator
-func RevCut(s, sep string) (leftOf, rightOf string, found bool) {
+// Deprecated: use RevCutv2, when !found, rightOf is returned
+func RevCutv1(s, sep string) (leftOf, rightOf string, found bool) {
+	leftOf, rightOf, found = RevCutv2(s, sep)
+	if found {
+		return
+	}
+
+	return rightOf, "", false
+}
+
+func RevCutv2(s, sep string) (leftOf, rightOf string, found bool) {
 	if i := strings.LastIndex(s, sep); i >= 0 {
 		return s[:i], s[i+len(sep):], true
 	}
-	return s, "", false
+	return "", s, false
 }
 
 func TrimLen(s string, max int) string {
