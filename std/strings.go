@@ -22,6 +22,16 @@ func RevCutv2(s, sep string) (leftOf, rightOf string, found bool) {
 	return "", s, false
 }
 
+func CutFunc(s string, f func(rune) bool) (leftOf, rightOf string, found bool) {
+	for i, r := range s {
+		if f(r) {
+			return s[:i], s[i+1:], true
+		}
+	}
+
+	return s, "", false
+}
+
 func TrimLen(s string, max int) string {
 	r := []rune(s)
 	if len(r) <= max {
