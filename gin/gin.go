@@ -13,12 +13,14 @@ func Cookie(c *gin.Context, name string) string {
 	return njom
 }
 
-// Uses error.html provided by consumer
+// Do not change this outside of init()
+var ErrorPage = "error.html"
+
 func HandlerWithErr(f func(*gin.Context) (status int, err string)) func(*gin.Context) {
 	return func(c *gin.Context) {
 		code, err := f(c)
 		if err != "" {
-			c.HTML(code, "error.html", gin.H{
+			c.HTML(code, ErrorPage, gin.H{
 				"err": fmt.Sprintf("%d %s: %s", code, http.StatusText(code), err),
 			})
 			c.Abort()
@@ -29,4 +31,16 @@ func HandlerWithErr(f func(*gin.Context) (status int, err string)) func(*gin.Con
 			c.Status(code)
 		}
 	}
+}
+
+// Wrapper for HandlerWithErr format
+func HTML(c *gin.Context, status int, name string, obj any) (int, string) {
+	c.HTML(status, name, obj)
+	return 0, ""
+}
+
+// Wrapper HandlerWithErr format
+func Redirect(c *gin.Context, status int, location string) (int, string) {
+	c.Redirect(status, location)
+	return 0, ""
 }
