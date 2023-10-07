@@ -20,7 +20,7 @@ func Cookie(c *gin.Context, name string) string {
 // Do not change this outside of init()
 var ErrorPage = "error.html"
 
-func HandlerWithErr(f func(*gin.Context, *Context) (status int, err string)) func(*gin.Context) {
+func HandlerWithErr(f func(c *gin.Context, g *Context) (status int, errStr string)) func(*gin.Context) {
 	return func(ctx *gin.Context) {
 		code, err := f(ctx, &Context{ctx})
 		if err != "" {
