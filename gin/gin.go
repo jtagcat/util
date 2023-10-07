@@ -1,10 +1,14 @@
 package gin
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jtagcat/util/std"
 )
 
 // c.Cookie(), without ok var (instead, check if empty)
@@ -52,4 +56,26 @@ func (w *Context) Redirect(status int, location string) (int, string) {
 // Wrapper HandlerWithErr format
 func (w *Context) Cookie(name string) string {
 	return Cookie(w.ctx, name)
+}
+
+func RunWithContext(ctx context.Context, router *gin.Engine) {
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
+
+	slog.Info("starting server", slog.String("address", srv.Addr))
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			slog.Error("starting server", std.SlogErr(err))
+			os.Exit(1)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("stopping server gracefully", slog.String("context", ctx.Err().Error()))
+	if err := srv.Shutdown(context.Background()); err != nil {
+		slog.Error("stopping server", std.SlogErr(err))
+		os.Exit(1)
+	}
 }
