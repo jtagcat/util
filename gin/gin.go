@@ -54,6 +54,12 @@ func (w *Context) Redirect(status int, location string) (int, string) {
 }
 
 // Wrapper HandlerWithErr format
+func (w *Context) Data(status int, contentType string, data []byte) (int, string) {
+	w.ctx.Data(status, contentType, data)
+	return 0, ""
+}
+
+// Wrapper HandlerWithErr format
 func (w *Context) Cookie(name string) string {
 	return Cookie(w.ctx, name)
 }
