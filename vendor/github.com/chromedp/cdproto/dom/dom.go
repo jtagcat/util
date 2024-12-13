@@ -1613,6 +1613,37 @@ func (p *GetFileInfoParams) Do(ctx context.Context) (path string, err error) {
 	return res.Path, nil
 }
 
+// GetDetachedDomNodesParams returns list of detached nodes.
+type GetDetachedDomNodesParams struct{}
+
+// GetDetachedDomNodes returns list of detached nodes.
+//
+// See: https://chromedevtools.github.io/devtools-protocol/tot/DOM#method-getDetachedDomNodes
+func GetDetachedDomNodes() *GetDetachedDomNodesParams {
+	return &GetDetachedDomNodesParams{}
+}
+
+// GetDetachedDomNodesReturns return values.
+type GetDetachedDomNodesReturns struct {
+	DetachedNodes []*DetachedElementInfo `json:"detachedNodes,omitempty"` // The list of detached nodes
+}
+
+// Do executes DOM.getDetachedDomNodes against the provided context.
+//
+// returns:
+//
+//	detachedNodes - The list of detached nodes
+func (p *GetDetachedDomNodesParams) Do(ctx context.Context) (detachedNodes []*DetachedElementInfo, err error) {
+	// execute
+	var res GetDetachedDomNodesReturns
+	err = cdp.Execute(ctx, CommandGetDetachedDomNodes, nil, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.DetachedNodes, nil
+}
+
 // SetInspectedNodeParams enables console to refer to the node with given id
 // via $x (see Command Line API for more details $x functions).
 type SetInspectedNodeParams struct {
@@ -1790,20 +1821,23 @@ func (p *GetFrameOwnerParams) Do(ctx context.Context) (backendNodeID cdp.Backend
 }
 
 // GetContainerForNodeParams returns the query container of the given node
-// based on container query conditions: containerName, physical, and logical
-// axes. If no axes are provided, the style container is returned, which is the
+// based on container query conditions: containerName, physical and logical
+// axes, and whether it queries scroll-state. If no axes are provided and
+// queriesScrollState is false, the style container is returned, which is the
 // direct parent or the closest element with a matching container-name.
 type GetContainerForNodeParams struct {
-	NodeID        cdp.NodeID   `json:"nodeId"`
-	ContainerName string       `json:"containerName,omitempty"`
-	PhysicalAxes  PhysicalAxes `json:"physicalAxes,omitempty"`
-	LogicalAxes   LogicalAxes  `json:"logicalAxes,omitempty"`
+	NodeID             cdp.NodeID   `json:"nodeId"`
+	ContainerName      string       `json:"containerName,omitempty"`
+	PhysicalAxes       PhysicalAxes `json:"physicalAxes,omitempty"`
+	LogicalAxes        LogicalAxes  `json:"logicalAxes,omitempty"`
+	QueriesScrollState bool         `json:"queriesScrollState,omitempty"`
 }
 
 // GetContainerForNode returns the query container of the given node based on
-// container query conditions: containerName, physical, and logical axes. If no
-// axes are provided, the style container is returned, which is the direct
-// parent or the closest element with a matching container-name.
+// container query conditions: containerName, physical and logical axes, and
+// whether it queries scroll-state. If no axes are provided and
+// queriesScrollState is false, the style container is returned, which is the
+// direct parent or the closest element with a matching container-name.
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/DOM#method-getContainerForNode
 //
@@ -1831,6 +1865,12 @@ func (p GetContainerForNodeParams) WithPhysicalAxes(physicalAxes PhysicalAxes) *
 // WithLogicalAxes [no description].
 func (p GetContainerForNodeParams) WithLogicalAxes(logicalAxes LogicalAxes) *GetContainerForNodeParams {
 	p.LogicalAxes = logicalAxes
+	return &p
+}
+
+// WithQueriesScrollState [no description].
+func (p GetContainerForNodeParams) WithQueriesScrollState(queriesScrollState bool) *GetContainerForNodeParams {
+	p.QueriesScrollState = queriesScrollState
 	return &p
 }
 
@@ -1988,6 +2028,7 @@ const (
 	CommandSetNodeStackTracesEnabled          = "DOM.setNodeStackTracesEnabled"
 	CommandGetNodeStackTraces                 = "DOM.getNodeStackTraces"
 	CommandGetFileInfo                        = "DOM.getFileInfo"
+	CommandGetDetachedDomNodes                = "DOM.getDetachedDomNodes"
 	CommandSetInspectedNode                   = "DOM.setInspectedNode"
 	CommandSetNodeName                        = "DOM.setNodeName"
 	CommandSetNodeValue                       = "DOM.setNodeValue"

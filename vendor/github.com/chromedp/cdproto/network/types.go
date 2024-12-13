@@ -110,7 +110,8 @@ func (t *ResourceType) UnmarshalJSON(buf []byte) error {
 	return easyjson.Unmarshal(buf, t)
 }
 
-// RequestID unique request identifier.
+// RequestID unique network request identifier. Note that this does not
+// identify individual HTTP requests that are part of a network request.
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/Network#type-RequestId
 type RequestID string
@@ -649,6 +650,7 @@ const (
 	BlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip        BlockedReason = "corp-not-same-origin-after-defaulted-to-same-origin-by-dip"
 	BlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip BlockedReason = "corp-not-same-origin-after-defaulted-to-same-origin-by-coep-and-dip"
 	BlockedReasonCorpNotSameSite                                         BlockedReason = "corp-not-same-site"
+	BlockedReasonSriMessageSignatureMismatch                             BlockedReason = "sri-message-signature-mismatch"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -693,6 +695,8 @@ func (t *BlockedReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = BlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip
 	case BlockedReasonCorpNotSameSite:
 		*t = BlockedReasonCorpNotSameSite
+	case BlockedReasonSriMessageSignatureMismatch:
+		*t = BlockedReasonSriMessageSignatureMismatch
 
 	default:
 		in.AddError(fmt.Errorf("unknown BlockedReason value: %v", v))
@@ -1162,7 +1166,7 @@ type CachedResource struct {
 // See: https://chromedevtools.github.io/devtools-protocol/tot/Network#type-Initiator
 type Initiator struct {
 	Type         InitiatorType       `json:"type"`                   // Type of this initiator.
-	Stack        *runtime.StackTrace `json:"stack,omitempty"`        // Initiator JavaScript stack trace, set for Script only.
+	Stack        *runtime.StackTrace `json:"stack,omitempty"`        // Initiator JavaScript stack trace, set for Script only. Requires the Debugger domain to be enabled.
 	URL          string              `json:"url,omitempty"`          // Initiator URL, set for Parser type or for Script type (when script is importing module) or for SignedExchange type.
 	LineNumber   float64             `json:"lineNumber,omitempty"`   // Initiator line number, set for Parser type or for Script type (when script is importing module) (0-based).
 	ColumnNumber float64             `json:"columnNumber,omitempty"` // Initiator column number, set for Parser type or for Script type (when script is importing module) (0-based).
@@ -1358,6 +1362,8 @@ const (
 	CookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax CookieBlockedReason = "SchemefulSameSiteUnspecifiedTreatedAsLax"
 	CookieBlockedReasonSamePartyFromCrossPartyContext           CookieBlockedReason = "SamePartyFromCrossPartyContext"
 	CookieBlockedReasonNameValuePairExceedsMaxSize              CookieBlockedReason = "NameValuePairExceedsMaxSize"
+	CookieBlockedReasonPortMismatch                             CookieBlockedReason = "PortMismatch"
+	CookieBlockedReasonSchemeMismatch                           CookieBlockedReason = "SchemeMismatch"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -1406,6 +1412,10 @@ func (t *CookieBlockedReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = CookieBlockedReasonSamePartyFromCrossPartyContext
 	case CookieBlockedReasonNameValuePairExceedsMaxSize:
 		*t = CookieBlockedReasonNameValuePairExceedsMaxSize
+	case CookieBlockedReasonPortMismatch:
+		*t = CookieBlockedReasonPortMismatch
+	case CookieBlockedReasonSchemeMismatch:
+		*t = CookieBlockedReasonSchemeMismatch
 
 	default:
 		in.AddError(fmt.Errorf("unknown CookieBlockedReason value: %v", v))
@@ -1430,16 +1440,16 @@ func (t CookieExemptionReason) String() string {
 
 // CookieExemptionReason values.
 const (
-	CookieExemptionReasonNone                  CookieExemptionReason = "None"
-	CookieExemptionReasonUserSetting           CookieExemptionReason = "UserSetting"
-	CookieExemptionReasonTPCDMetadata          CookieExemptionReason = "TPCDMetadata"
-	CookieExemptionReasonTPCDDeprecationTrial  CookieExemptionReason = "TPCDDeprecationTrial"
-	CookieExemptionReasonTPCDHeuristics        CookieExemptionReason = "TPCDHeuristics"
-	CookieExemptionReasonEnterprisePolicy      CookieExemptionReason = "EnterprisePolicy"
-	CookieExemptionReasonStorageAccess         CookieExemptionReason = "StorageAccess"
-	CookieExemptionReasonTopLevelStorageAccess CookieExemptionReason = "TopLevelStorageAccess"
-	CookieExemptionReasonCorsOptIn             CookieExemptionReason = "CorsOptIn"
-	CookieExemptionReasonScheme                CookieExemptionReason = "Scheme"
+	CookieExemptionReasonNone                         CookieExemptionReason = "None"
+	CookieExemptionReasonUserSetting                  CookieExemptionReason = "UserSetting"
+	CookieExemptionReasonTPCDMetadata                 CookieExemptionReason = "TPCDMetadata"
+	CookieExemptionReasonTPCDDeprecationTrial         CookieExemptionReason = "TPCDDeprecationTrial"
+	CookieExemptionReasonTopLevelTPCDDeprecationTrial CookieExemptionReason = "TopLevelTPCDDeprecationTrial"
+	CookieExemptionReasonTPCDHeuristics               CookieExemptionReason = "TPCDHeuristics"
+	CookieExemptionReasonEnterprisePolicy             CookieExemptionReason = "EnterprisePolicy"
+	CookieExemptionReasonStorageAccess                CookieExemptionReason = "StorageAccess"
+	CookieExemptionReasonTopLevelStorageAccess        CookieExemptionReason = "TopLevelStorageAccess"
+	CookieExemptionReasonScheme                       CookieExemptionReason = "Scheme"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -1464,6 +1474,8 @@ func (t *CookieExemptionReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = CookieExemptionReasonTPCDMetadata
 	case CookieExemptionReasonTPCDDeprecationTrial:
 		*t = CookieExemptionReasonTPCDDeprecationTrial
+	case CookieExemptionReasonTopLevelTPCDDeprecationTrial:
+		*t = CookieExemptionReasonTopLevelTPCDDeprecationTrial
 	case CookieExemptionReasonTPCDHeuristics:
 		*t = CookieExemptionReasonTPCDHeuristics
 	case CookieExemptionReasonEnterprisePolicy:
@@ -1472,8 +1484,6 @@ func (t *CookieExemptionReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = CookieExemptionReasonStorageAccess
 	case CookieExemptionReasonTopLevelStorageAccess:
 		*t = CookieExemptionReasonTopLevelStorageAccess
-	case CookieExemptionReasonCorsOptIn:
-		*t = CookieExemptionReasonCorsOptIn
 	case CookieExemptionReasonScheme:
 		*t = CookieExemptionReasonScheme
 
@@ -1908,6 +1918,7 @@ const (
 	CrossOriginOpenerPolicyValueUnsafeNone                 CrossOriginOpenerPolicyValue = "UnsafeNone"
 	CrossOriginOpenerPolicyValueSameOriginPlusCoep         CrossOriginOpenerPolicyValue = "SameOriginPlusCoep"
 	CrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep CrossOriginOpenerPolicyValue = "RestrictPropertiesPlusCoep"
+	CrossOriginOpenerPolicyValueNoopenerAllowPopups        CrossOriginOpenerPolicyValue = "NoopenerAllowPopups"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -1936,6 +1947,8 @@ func (t *CrossOriginOpenerPolicyValue) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = CrossOriginOpenerPolicyValueSameOriginPlusCoep
 	case CrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep:
 		*t = CrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep
+	case CrossOriginOpenerPolicyValueNoopenerAllowPopups:
+		*t = CrossOriginOpenerPolicyValueNoopenerAllowPopups
 
 	default:
 		in.AddError(fmt.Errorf("unknown CrossOriginOpenerPolicyValue value: %v", v))

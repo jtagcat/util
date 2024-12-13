@@ -60,6 +60,8 @@ const (
 	CookieExclusionReasonExcludeDomainNonASCII                         CookieExclusionReason = "ExcludeDomainNonASCII"
 	CookieExclusionReasonExcludeThirdPartyCookieBlockedInFirstPartySet CookieExclusionReason = "ExcludeThirdPartyCookieBlockedInFirstPartySet"
 	CookieExclusionReasonExcludeThirdPartyPhaseout                     CookieExclusionReason = "ExcludeThirdPartyPhaseout"
+	CookieExclusionReasonExcludePortMismatch                           CookieExclusionReason = "ExcludePortMismatch"
+	CookieExclusionReasonExcludeSchemeMismatch                         CookieExclusionReason = "ExcludeSchemeMismatch"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -94,6 +96,10 @@ func (t *CookieExclusionReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = CookieExclusionReasonExcludeThirdPartyCookieBlockedInFirstPartySet
 	case CookieExclusionReasonExcludeThirdPartyPhaseout:
 		*t = CookieExclusionReasonExcludeThirdPartyPhaseout
+	case CookieExclusionReasonExcludePortMismatch:
+		*t = CookieExclusionReasonExcludePortMismatch
+	case CookieExclusionReasonExcludeSchemeMismatch:
+		*t = CookieExclusionReasonExcludeSchemeMismatch
 
 	default:
 		in.AddError(fmt.Errorf("unknown CookieExclusionReason value: %v", v))
@@ -129,6 +135,8 @@ const (
 	CookieWarningReasonWarnDomainNonASCII                             CookieWarningReason = "WarnDomainNonASCII"
 	CookieWarningReasonWarnThirdPartyPhaseout                         CookieWarningReason = "WarnThirdPartyPhaseout"
 	CookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion CookieWarningReason = "WarnCrossSiteRedirectDowngradeChangesInclusion"
+	CookieWarningReasonWarnDeprecationTrialMetadata                   CookieWarningReason = "WarnDeprecationTrialMetadata"
+	CookieWarningReasonWarnThirdPartyCookieHeuristic                  CookieWarningReason = "WarnThirdPartyCookieHeuristic"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -169,6 +177,10 @@ func (t *CookieWarningReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = CookieWarningReasonWarnThirdPartyPhaseout
 	case CookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion:
 		*t = CookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion
+	case CookieWarningReasonWarnDeprecationTrialMetadata:
+		*t = CookieWarningReasonWarnDeprecationTrialMetadata
+	case CookieWarningReasonWarnThirdPartyCookieHeuristic:
+		*t = CookieWarningReasonWarnThirdPartyCookieHeuristic
 
 	default:
 		in.AddError(fmt.Errorf("unknown CookieWarningReason value: %v", v))
@@ -225,6 +237,64 @@ func (t *CookieOperation) UnmarshalJSON(buf []byte) error {
 	return easyjson.Unmarshal(buf, t)
 }
 
+// InsightType represents the category of insight that a cookie issue falls
+// under.
+//
+// See: https://chromedevtools.github.io/devtools-protocol/tot/Audits#type-InsightType
+type InsightType string
+
+// String returns the InsightType as string value.
+func (t InsightType) String() string {
+	return string(t)
+}
+
+// InsightType values.
+const (
+	InsightTypeGitHubResource InsightType = "GitHubResource"
+	InsightTypeGracePeriod    InsightType = "GracePeriod"
+	InsightTypeHeuristics     InsightType = "Heuristics"
+)
+
+// MarshalEasyJSON satisfies easyjson.Marshaler.
+func (t InsightType) MarshalEasyJSON(out *jwriter.Writer) {
+	out.String(string(t))
+}
+
+// MarshalJSON satisfies json.Marshaler.
+func (t InsightType) MarshalJSON() ([]byte, error) {
+	return easyjson.Marshal(t)
+}
+
+// UnmarshalEasyJSON satisfies easyjson.Unmarshaler.
+func (t *InsightType) UnmarshalEasyJSON(in *jlexer.Lexer) {
+	v := in.String()
+	switch InsightType(v) {
+	case InsightTypeGitHubResource:
+		*t = InsightTypeGitHubResource
+	case InsightTypeGracePeriod:
+		*t = InsightTypeGracePeriod
+	case InsightTypeHeuristics:
+		*t = InsightTypeHeuristics
+
+	default:
+		in.AddError(fmt.Errorf("unknown InsightType value: %v", v))
+	}
+}
+
+// UnmarshalJSON satisfies json.Unmarshaler.
+func (t *InsightType) UnmarshalJSON(buf []byte) error {
+	return easyjson.Unmarshal(buf, t)
+}
+
+// CookieIssueInsight information about the suggested solution to a cookie
+// issue.
+//
+// See: https://chromedevtools.github.io/devtools-protocol/tot/Audits#type-CookieIssueInsight
+type CookieIssueInsight struct {
+	Type          InsightType `json:"type"`
+	TableEntryURL string      `json:"tableEntryUrl,omitempty"` // Link to table entry in third-party cookie migration readiness list.
+}
+
 // CookieIssueDetails this information is currently necessary, as the
 // front-end has a difficult time finding a specific cookie. With this, we can
 // convey specific error information without the cookie.
@@ -239,6 +309,7 @@ type CookieIssueDetails struct {
 	SiteForCookies         string                  `json:"siteForCookies,omitempty"`
 	CookieURL              string                  `json:"cookieUrl,omitempty"`
 	Request                *AffectedRequest        `json:"request,omitempty"`
+	Insight                *CookieIssueInsight     `json:"insight,omitempty"` // The recommended solution to the issue.
 }
 
 // MixedContentResolutionStatus [no description].
@@ -447,6 +518,7 @@ const (
 	BlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip        BlockedByResponseReason = "CorpNotSameOriginAfterDefaultedToSameOriginByDip"
 	BlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip BlockedByResponseReason = "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip"
 	BlockedByResponseReasonCorpNotSameSite                                         BlockedByResponseReason = "CorpNotSameSite"
+	BlockedByResponseReasonSRIMessageSignatureMismatch                             BlockedByResponseReason = "SRIMessageSignatureMismatch"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -477,6 +549,8 @@ func (t *BlockedByResponseReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = BlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip
 	case BlockedByResponseReasonCorpNotSameSite:
 		*t = BlockedByResponseReasonCorpNotSameSite
+	case BlockedByResponseReasonSRIMessageSignatureMismatch:
+		*t = BlockedByResponseReasonSRIMessageSignatureMismatch
 
 	default:
 		in.AddError(fmt.Errorf("unknown BlockedByResponseReason value: %v", v))
@@ -797,6 +871,7 @@ const (
 	AttributionReportingIssueTypeNoRegisterTriggerHeader                              AttributionReportingIssueType = "NoRegisterTriggerHeader"
 	AttributionReportingIssueTypeNoRegisterOsSourceHeader                             AttributionReportingIssueType = "NoRegisterOsSourceHeader"
 	AttributionReportingIssueTypeNoRegisterOsTriggerHeader                            AttributionReportingIssueType = "NoRegisterOsTriggerHeader"
+	AttributionReportingIssueTypeNavigationRegistrationUniqueScopeAlreadySet          AttributionReportingIssueType = "NavigationRegistrationUniqueScopeAlreadySet"
 )
 
 // MarshalEasyJSON satisfies easyjson.Marshaler.
@@ -853,6 +928,8 @@ func (t *AttributionReportingIssueType) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = AttributionReportingIssueTypeNoRegisterOsSourceHeader
 	case AttributionReportingIssueTypeNoRegisterOsTriggerHeader:
 		*t = AttributionReportingIssueTypeNoRegisterOsTriggerHeader
+	case AttributionReportingIssueTypeNavigationRegistrationUniqueScopeAlreadySet:
+		*t = AttributionReportingIssueTypeNavigationRegistrationUniqueScopeAlreadySet
 
 	default:
 		in.AddError(fmt.Errorf("unknown AttributionReportingIssueType value: %v", v))
@@ -1016,7 +1093,6 @@ func (t GenericIssueErrorType) String() string {
 
 // GenericIssueErrorType values.
 const (
-	GenericIssueErrorTypeCrossOriginPortalPostMessageError                          GenericIssueErrorType = "CrossOriginPortalPostMessageError"
 	GenericIssueErrorTypeFormLabelForNameError                                      GenericIssueErrorType = "FormLabelForNameError"
 	GenericIssueErrorTypeFormDuplicateIDForInputError                               GenericIssueErrorType = "FormDuplicateIdForInputError"
 	GenericIssueErrorTypeFormInputWithNoLabelError                                  GenericIssueErrorType = "FormInputWithNoLabelError"
@@ -1044,8 +1120,6 @@ func (t GenericIssueErrorType) MarshalJSON() ([]byte, error) {
 func (t *GenericIssueErrorType) UnmarshalEasyJSON(in *jlexer.Lexer) {
 	v := in.String()
 	switch GenericIssueErrorType(v) {
-	case GenericIssueErrorTypeCrossOriginPortalPostMessageError:
-		*t = GenericIssueErrorTypeCrossOriginPortalPostMessageError
 	case GenericIssueErrorTypeFormLabelForNameError:
 		*t = GenericIssueErrorTypeFormLabelForNameError
 	case GenericIssueErrorTypeFormDuplicateIDForInputError:
@@ -1237,7 +1311,7 @@ const (
 	FederatedAuthRequestIssueReasonThirdPartyCookiesBlocked         FederatedAuthRequestIssueReason = "ThirdPartyCookiesBlocked"
 	FederatedAuthRequestIssueReasonNotSignedInWithIdp               FederatedAuthRequestIssueReason = "NotSignedInWithIdp"
 	FederatedAuthRequestIssueReasonMissingTransientUserActivation   FederatedAuthRequestIssueReason = "MissingTransientUserActivation"
-	FederatedAuthRequestIssueReasonReplacedByButtonMode             FederatedAuthRequestIssueReason = "ReplacedByButtonMode"
+	FederatedAuthRequestIssueReasonReplacedByActiveMode             FederatedAuthRequestIssueReason = "ReplacedByActiveMode"
 	FederatedAuthRequestIssueReasonInvalidFieldsSpecified           FederatedAuthRequestIssueReason = "InvalidFieldsSpecified"
 	FederatedAuthRequestIssueReasonRelyingPartyOriginIsOpaque       FederatedAuthRequestIssueReason = "RelyingPartyOriginIsOpaque"
 	FederatedAuthRequestIssueReasonTypeNotMatching                  FederatedAuthRequestIssueReason = "TypeNotMatching"
@@ -1339,8 +1413,8 @@ func (t *FederatedAuthRequestIssueReason) UnmarshalEasyJSON(in *jlexer.Lexer) {
 		*t = FederatedAuthRequestIssueReasonNotSignedInWithIdp
 	case FederatedAuthRequestIssueReasonMissingTransientUserActivation:
 		*t = FederatedAuthRequestIssueReasonMissingTransientUserActivation
-	case FederatedAuthRequestIssueReasonReplacedByButtonMode:
-		*t = FederatedAuthRequestIssueReasonReplacedByButtonMode
+	case FederatedAuthRequestIssueReasonReplacedByActiveMode:
+		*t = FederatedAuthRequestIssueReasonReplacedByActiveMode
 	case FederatedAuthRequestIssueReasonInvalidFieldsSpecified:
 		*t = FederatedAuthRequestIssueReasonInvalidFieldsSpecified
 	case FederatedAuthRequestIssueReasonRelyingPartyOriginIsOpaque:

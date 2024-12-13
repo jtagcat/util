@@ -41,6 +41,14 @@ type EventFrameDetached struct {
 	Reason  FrameDetachedReason `json:"reason"`
 }
 
+// EventFrameSubtreeWillBeDetached fired before frame subtree is detached.
+// Emitted before any frame of the subtree is actually detached.
+//
+// See: https://chromedevtools.github.io/devtools-protocol/tot/Page#event-frameSubtreeWillBeDetached
+type EventFrameSubtreeWillBeDetached struct {
+	FrameID cdp.FrameID `json:"frameId"` // Id of the frame that is the root of the subtree that will be detached.
+}
+
 // EventFrameNavigated fired once navigation of the frame has completed.
 // Frame is now associated with the new loader.
 //
@@ -118,8 +126,8 @@ type EventJavascriptDialogOpening struct {
 	DefaultPrompt     string     `json:"defaultPrompt,omitempty"` // Default dialog prompt.
 }
 
-// EventLifecycleEvent fired for top level page lifecycle events such as
-// navigation, load, paint, etc.
+// EventLifecycleEvent fired for lifecycle events (navigation, load, paint,
+// etc) in the current target (including local frames).
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/Page#event-lifecycleEvent
 type EventLifecycleEvent struct {
@@ -155,8 +163,9 @@ type EventLoadEventFired struct {
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/Page#event-navigatedWithinDocument
 type EventNavigatedWithinDocument struct {
-	FrameID cdp.FrameID `json:"frameId"` // Id of the frame.
-	URL     string      `json:"url"`     // Frame's new url.
+	FrameID        cdp.FrameID                           `json:"frameId"`        // Id of the frame.
+	URL            string                                `json:"url"`            // Frame's new url.
+	NavigationType NavigatedWithinDocumentNavigationType `json:"navigationType"` // Navigation type
 }
 
 // EventScreencastFrame compressed image data requested by the
