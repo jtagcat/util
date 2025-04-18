@@ -74,6 +74,7 @@ const (
 	PermissionsPolicyFeatureCrossOriginIsolated            PermissionsPolicyFeature = "cross-origin-isolated"
 	PermissionsPolicyFeatureDeferredFetch                  PermissionsPolicyFeature = "deferred-fetch"
 	PermissionsPolicyFeatureDeferredFetchMinimal           PermissionsPolicyFeature = "deferred-fetch-minimal"
+	PermissionsPolicyFeatureDeviceAttributes               PermissionsPolicyFeature = "device-attributes"
 	PermissionsPolicyFeatureDigitalCredentialsGet          PermissionsPolicyFeature = "digital-credentials-get"
 	PermissionsPolicyFeatureDirectSockets                  PermissionsPolicyFeature = "direct-sockets"
 	PermissionsPolicyFeatureDirectSocketsPrivate           PermissionsPolicyFeature = "direct-sockets-private"
@@ -95,6 +96,7 @@ const (
 	PermissionsPolicyFeatureInterestCohort                 PermissionsPolicyFeature = "interest-cohort"
 	PermissionsPolicyFeatureJoinAdInterestGroup            PermissionsPolicyFeature = "join-ad-interest-group"
 	PermissionsPolicyFeatureKeyboardMap                    PermissionsPolicyFeature = "keyboard-map"
+	PermissionsPolicyFeatureLanguageDetector               PermissionsPolicyFeature = "language-detector"
 	PermissionsPolicyFeatureLocalFonts                     PermissionsPolicyFeature = "local-fonts"
 	PermissionsPolicyFeatureMagnetometer                   PermissionsPolicyFeature = "magnetometer"
 	PermissionsPolicyFeatureMediaPlaybackWhileNotVisible   PermissionsPolicyFeature = "media-playback-while-not-visible"
@@ -109,6 +111,7 @@ const (
 	PermissionsPolicyFeaturePrivateStateTokenRedemption    PermissionsPolicyFeature = "private-state-token-redemption"
 	PermissionsPolicyFeaturePublickeyCredentialsCreate     PermissionsPolicyFeature = "publickey-credentials-create"
 	PermissionsPolicyFeaturePublickeyCredentialsGet        PermissionsPolicyFeature = "publickey-credentials-get"
+	PermissionsPolicyFeatureRewriter                       PermissionsPolicyFeature = "rewriter"
 	PermissionsPolicyFeatureRunAdAuction                   PermissionsPolicyFeature = "run-ad-auction"
 	PermissionsPolicyFeatureScreenWakeLock                 PermissionsPolicyFeature = "screen-wake-lock"
 	PermissionsPolicyFeatureSerial                         PermissionsPolicyFeature = "serial"
@@ -119,7 +122,9 @@ const (
 	PermissionsPolicyFeatureSpeakerSelection               PermissionsPolicyFeature = "speaker-selection"
 	PermissionsPolicyFeatureStorageAccess                  PermissionsPolicyFeature = "storage-access"
 	PermissionsPolicyFeatureSubApps                        PermissionsPolicyFeature = "sub-apps"
+	PermissionsPolicyFeatureSummarizer                     PermissionsPolicyFeature = "summarizer"
 	PermissionsPolicyFeatureSyncXhr                        PermissionsPolicyFeature = "sync-xhr"
+	PermissionsPolicyFeatureTranslator                     PermissionsPolicyFeature = "translator"
 	PermissionsPolicyFeatureUnload                         PermissionsPolicyFeature = "unload"
 	PermissionsPolicyFeatureUsb                            PermissionsPolicyFeature = "usb"
 	PermissionsPolicyFeatureUsbUnrestricted                PermissionsPolicyFeature = "usb-unrestricted"
@@ -128,6 +133,7 @@ const (
 	PermissionsPolicyFeatureWebPrinting                    PermissionsPolicyFeature = "web-printing"
 	PermissionsPolicyFeatureWebShare                       PermissionsPolicyFeature = "web-share"
 	PermissionsPolicyFeatureWindowManagement               PermissionsPolicyFeature = "window-management"
+	PermissionsPolicyFeatureWriter                         PermissionsPolicyFeature = "writer"
 	PermissionsPolicyFeatureXrSpatialTracking              PermissionsPolicyFeature = "xr-spatial-tracking"
 )
 
@@ -217,6 +223,8 @@ func (t *PermissionsPolicyFeature) UnmarshalJSON(buf []byte) error {
 		*t = PermissionsPolicyFeatureDeferredFetch
 	case PermissionsPolicyFeatureDeferredFetchMinimal:
 		*t = PermissionsPolicyFeatureDeferredFetchMinimal
+	case PermissionsPolicyFeatureDeviceAttributes:
+		*t = PermissionsPolicyFeatureDeviceAttributes
 	case PermissionsPolicyFeatureDigitalCredentialsGet:
 		*t = PermissionsPolicyFeatureDigitalCredentialsGet
 	case PermissionsPolicyFeatureDirectSockets:
@@ -259,6 +267,8 @@ func (t *PermissionsPolicyFeature) UnmarshalJSON(buf []byte) error {
 		*t = PermissionsPolicyFeatureJoinAdInterestGroup
 	case PermissionsPolicyFeatureKeyboardMap:
 		*t = PermissionsPolicyFeatureKeyboardMap
+	case PermissionsPolicyFeatureLanguageDetector:
+		*t = PermissionsPolicyFeatureLanguageDetector
 	case PermissionsPolicyFeatureLocalFonts:
 		*t = PermissionsPolicyFeatureLocalFonts
 	case PermissionsPolicyFeatureMagnetometer:
@@ -287,6 +297,8 @@ func (t *PermissionsPolicyFeature) UnmarshalJSON(buf []byte) error {
 		*t = PermissionsPolicyFeaturePublickeyCredentialsCreate
 	case PermissionsPolicyFeaturePublickeyCredentialsGet:
 		*t = PermissionsPolicyFeaturePublickeyCredentialsGet
+	case PermissionsPolicyFeatureRewriter:
+		*t = PermissionsPolicyFeatureRewriter
 	case PermissionsPolicyFeatureRunAdAuction:
 		*t = PermissionsPolicyFeatureRunAdAuction
 	case PermissionsPolicyFeatureScreenWakeLock:
@@ -307,8 +319,12 @@ func (t *PermissionsPolicyFeature) UnmarshalJSON(buf []byte) error {
 		*t = PermissionsPolicyFeatureStorageAccess
 	case PermissionsPolicyFeatureSubApps:
 		*t = PermissionsPolicyFeatureSubApps
+	case PermissionsPolicyFeatureSummarizer:
+		*t = PermissionsPolicyFeatureSummarizer
 	case PermissionsPolicyFeatureSyncXhr:
 		*t = PermissionsPolicyFeatureSyncXhr
+	case PermissionsPolicyFeatureTranslator:
+		*t = PermissionsPolicyFeatureTranslator
 	case PermissionsPolicyFeatureUnload:
 		*t = PermissionsPolicyFeatureUnload
 	case PermissionsPolicyFeatureUsb:
@@ -325,6 +341,8 @@ func (t *PermissionsPolicyFeature) UnmarshalJSON(buf []byte) error {
 		*t = PermissionsPolicyFeatureWebShare
 	case PermissionsPolicyFeatureWindowManagement:
 		*t = PermissionsPolicyFeatureWindowManagement
+	case PermissionsPolicyFeatureWriter:
+		*t = PermissionsPolicyFeatureWriter
 	case PermissionsPolicyFeatureXrSpatialTracking:
 		*t = PermissionsPolicyFeatureXrSpatialTracking
 	default:
@@ -398,8 +416,8 @@ type FrameResource struct {
 	MimeType     string               `json:"mimeType"`                        // Resource mimeType as determined by the browser.
 	LastModified *cdp.TimeSinceEpoch  `json:"lastModified,omitempty,omitzero"` // last-modified timestamp as reported by server.
 	ContentSize  float64              `json:"contentSize,omitempty,omitzero"`  // Resource content size.
-	Failed       bool                 `json:"failed,omitempty,omitzero"`       // True if the resource failed to load.
-	Canceled     bool                 `json:"canceled,omitempty,omitzero"`     // True if the resource was canceled during loading.
+	Failed       bool                 `json:"failed"`                          // True if the resource failed to load.
+	Canceled     bool                 `json:"canceled"`                        // True if the resource was canceled during loading.
 }
 
 // FrameResourceTree information about the Frame hierarchy along with their
@@ -803,8 +821,8 @@ func (t *ReferrerPolicy) UnmarshalJSON(buf []byte) error {
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/Page#type-CompilationCacheParams
 type CompilationCacheParams struct {
-	URL   string `json:"url"`                      // The URL of the script to produce a compilation cache entry for.
-	Eager bool   `json:"eager,omitempty,omitzero"` // A hint to the backend whether eager compilation is recommended. (the actual compilation mode used is upon backend discretion).
+	URL   string `json:"url"`   // The URL of the script to produce a compilation cache entry for.
+	Eager bool   `json:"eager"` // A hint to the backend whether eager compilation is recommended. (the actual compilation mode used is upon backend discretion).
 }
 
 // FileFilter [no description].
@@ -912,7 +930,7 @@ type WebAppManifest struct {
 	LaunchHandler             *LaunchHandler        `json:"launchHandler,omitempty,omitzero"` // TODO(crbug.com/1231886): This field is non-standard and part of a Chrome experiment. See: https://github.com/WICG/web-app-launch/blob/main/launch_handler.md
 	Name                      string                `json:"name,omitempty,omitzero"`
 	Orientation               string                `json:"orientation,omitempty,omitzero"`
-	PreferRelatedApplications bool                  `json:"preferRelatedApplications,omitempty,omitzero"`
+	PreferRelatedApplications bool                  `json:"preferRelatedApplications"`
 	ProtocolHandlers          []*ProtocolHandler    `json:"protocolHandlers,omitempty,omitzero"` // The handlers to open protocols.
 	RelatedApplications       []*RelatedApplication `json:"relatedApplications,omitempty,omitzero"`
 	Scope                     string                `json:"scope,omitempty,omitzero"`
@@ -1149,6 +1167,7 @@ const (
 	BackForwardCacheNotRestoredReasonRequestedByWebViewClient                                 BackForwardCacheNotRestoredReason = "RequestedByWebViewClient"
 	BackForwardCacheNotRestoredReasonPostMessageByWebViewClient                               BackForwardCacheNotRestoredReason = "PostMessageByWebViewClient"
 	BackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated          BackForwardCacheNotRestoredReason = "CacheControlNoStoreDeviceBoundSessionTerminated"
+	BackForwardCacheNotRestoredReasonCacheLimitPruned                                         BackForwardCacheNotRestoredReason = "CacheLimitPruned"
 )
 
 // UnmarshalJSON satisfies [json.Unmarshaler].
@@ -1437,6 +1456,8 @@ func (t *BackForwardCacheNotRestoredReason) UnmarshalJSON(buf []byte) error {
 		*t = BackForwardCacheNotRestoredReasonPostMessageByWebViewClient
 	case BackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated:
 		*t = BackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated
+	case BackForwardCacheNotRestoredReasonCacheLimitPruned:
+		*t = BackForwardCacheNotRestoredReasonCacheLimitPruned
 	default:
 		return fmt.Errorf("unknown BackForwardCacheNotRestoredReason value: %v", s)
 	}

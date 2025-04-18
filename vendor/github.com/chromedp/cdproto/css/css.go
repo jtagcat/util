@@ -121,8 +121,8 @@ func (p *CollectClassNamesParams) Do(ctx context.Context) (classNames []string, 
 // CreateStyleSheetParams creates a new special "via-inspector" stylesheet in
 // the frame with given frameId.
 type CreateStyleSheetParams struct {
-	FrameID cdp.FrameID `json:"frameId"`                  // Identifier of the frame where "via-inspector" stylesheet should be created.
-	Force   bool        `json:"force,omitempty,omitzero"` // If true, creates a new stylesheet for every call. If false, returns a stylesheet previously created by a call with force=false for the frame's document if it exists or creates a new stylesheet (default: false).
+	FrameID cdp.FrameID `json:"frameId"` // Identifier of the frame where "via-inspector" stylesheet should be created.
+	Force   bool        `json:"force"`   // If true, creates a new stylesheet for every call. If false, returns a stylesheet previously created by a call with force=false for the frame's document if it exists or creates a new stylesheet (default: false).
 }
 
 // CreateStyleSheet creates a new special "via-inspector" stylesheet in the
@@ -136,6 +136,7 @@ type CreateStyleSheetParams struct {
 func CreateStyleSheet(frameID cdp.FrameID) *CreateStyleSheetParams {
 	return &CreateStyleSheetParams{
 		FrameID: frameID,
+		Force:   false,
 	}
 }
 
@@ -345,7 +346,11 @@ func (p *GetComputedStyleForNodeParams) Do(ctx context.Context) (computedStyle [
 // ResolveValuesParams resolve the specified values in the context of the
 // provided element. For example, a value of '1em' is evaluated according to the
 // computed 'font-size' of the element and a value 'calc(1px + 2px)' will be
-// resolved to '3px'.
+// resolved to '3px'. If the propertyName was specified the values are resolved
+// as if they were property's declaration. If a value cannot be parsed according
+// to the provided property syntax, the value is parsed using combined syntax as
+// if null propertyName was provided. If the value cannot be resolved even then,
+// return the provided value without any changes.
 type ResolveValuesParams struct {
 	Values           []string       `json:"values"`                              // Substitution functions (var()/env()/attr()) and cascade-dependent keywords (revert/revert-layer) do not work.
 	NodeID           cdp.NodeID     `json:"nodeId"`                              // Id of the node in whose context the expression is evaluated
@@ -357,7 +362,11 @@ type ResolveValuesParams struct {
 // ResolveValues resolve the specified values in the context of the provided
 // element. For example, a value of '1em' is evaluated according to the computed
 // 'font-size' of the element and a value 'calc(1px + 2px)' will be resolved to
-// '3px'.
+// '3px'. If the propertyName was specified the values are resolved as if they
+// were property's declaration. If a value cannot be parsed according to the
+// provided property syntax, the value is parsed using combined syntax as if
+// null propertyName was provided. If the value cannot be resolved even then,
+// return the provided value without any changes.
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/CSS#method-resolveValues
 //

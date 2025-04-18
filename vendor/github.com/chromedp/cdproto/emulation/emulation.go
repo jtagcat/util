@@ -92,7 +92,7 @@ func (p *SetFocusEmulationEnabledParams) Do(ctx context.Context) (err error) {
 // SetAutoDarkModeOverrideParams automatically render all web contents using
 // a dark theme.
 type SetAutoDarkModeOverrideParams struct {
-	Enabled bool `json:"enabled,omitempty,omitzero"` // Whether to enable or disable automatic dark mode. If not specified, any existing override will be cleared.
+	Enabled bool `json:"enabled"` // Whether to enable or disable automatic dark mode. If not specified, any existing override will be cleared.
 }
 
 // SetAutoDarkModeOverride automatically render all web contents using a dark
@@ -102,7 +102,9 @@ type SetAutoDarkModeOverrideParams struct {
 //
 // parameters:
 func SetAutoDarkModeOverride() *SetAutoDarkModeOverrideParams {
-	return &SetAutoDarkModeOverrideParams{}
+	return &SetAutoDarkModeOverrideParams{
+		Enabled: false,
+	}
 }
 
 // WithEnabled whether to enable or disable automatic dark mode. If not
@@ -203,19 +205,18 @@ func (p *SetSafeAreaInsetsOverrideParams) Do(ctx context.Context) (err error) {
 // window.innerHeight, and "device-width"/"device-height"-related CSS media
 // query results).
 type SetDeviceMetricsOverrideParams struct {
-	Width              int64              `json:"width"`                                 // Overriding width value in pixels (minimum 0, maximum 10000000). 0 disables the override.
-	Height             int64              `json:"height"`                                // Overriding height value in pixels (minimum 0, maximum 10000000). 0 disables the override.
-	DeviceScaleFactor  float64            `json:"deviceScaleFactor"`                     // Overriding device scale factor value. 0 disables the override.
-	Mobile             bool               `json:"mobile"`                                // Whether to emulate mobile device. This includes viewport meta tag, overlay scrollbars, text autosizing and more.
-	Scale              float64            `json:"scale,omitempty,omitzero"`              // Scale to apply to resulting view image.
-	ScreenWidth        int64              `json:"screenWidth,omitempty,omitzero"`        // Overriding screen width value in pixels (minimum 0, maximum 10000000).
-	ScreenHeight       int64              `json:"screenHeight,omitempty,omitzero"`       // Overriding screen height value in pixels (minimum 0, maximum 10000000).
-	PositionX          int64              `json:"positionX,omitempty,omitzero"`          // Overriding view X position on screen in pixels (minimum 0, maximum 10000000).
-	PositionY          int64              `json:"positionY,omitempty,omitzero"`          // Overriding view Y position on screen in pixels (minimum 0, maximum 10000000).
-	DontSetVisibleSize bool               `json:"dontSetVisibleSize,omitempty,omitzero"` // Do not set visible view size, rely upon explicit setVisibleSize call.
-	ScreenOrientation  *ScreenOrientation `json:"screenOrientation,omitempty,omitzero"`  // Screen orientation override.
-	Viewport           *page.Viewport     `json:"viewport,omitempty,omitzero"`           // If set, the visible area of the page will be overridden to this viewport. This viewport change is not observed by the page, e.g. viewport-relative elements do not change positions.
-	DisplayFeature     *DisplayFeature    `json:"displayFeature,omitempty,omitzero"`     // If set, the display feature of a multi-segment screen. If not set, multi-segment support is turned-off.
+	Width              int64              `json:"width"`                                // Overriding width value in pixels (minimum 0, maximum 10000000). 0 disables the override.
+	Height             int64              `json:"height"`                               // Overriding height value in pixels (minimum 0, maximum 10000000). 0 disables the override.
+	DeviceScaleFactor  float64            `json:"deviceScaleFactor"`                    // Overriding device scale factor value. 0 disables the override.
+	Mobile             bool               `json:"mobile"`                               // Whether to emulate mobile device. This includes viewport meta tag, overlay scrollbars, text autosizing and more.
+	Scale              float64            `json:"scale,omitempty,omitzero"`             // Scale to apply to resulting view image.
+	ScreenWidth        int64              `json:"screenWidth,omitempty,omitzero"`       // Overriding screen width value in pixels (minimum 0, maximum 10000000).
+	ScreenHeight       int64              `json:"screenHeight,omitempty,omitzero"`      // Overriding screen height value in pixels (minimum 0, maximum 10000000).
+	PositionX          int64              `json:"positionX,omitempty,omitzero"`         // Overriding view X position on screen in pixels (minimum 0, maximum 10000000).
+	PositionY          int64              `json:"positionY,omitempty,omitzero"`         // Overriding view Y position on screen in pixels (minimum 0, maximum 10000000).
+	DontSetVisibleSize bool               `json:"dontSetVisibleSize"`                   // Do not set visible view size, rely upon explicit setVisibleSize call.
+	ScreenOrientation  *ScreenOrientation `json:"screenOrientation,omitempty,omitzero"` // Screen orientation override.
+	Viewport           *page.Viewport     `json:"viewport,omitempty,omitzero"`          // If set, the visible area of the page will be overridden to this viewport. This viewport change is not observed by the page, e.g. viewport-relative elements do not change positions.
 }
 
 // SetDeviceMetricsOverride overrides the values of device screen dimensions
@@ -233,10 +234,11 @@ type SetDeviceMetricsOverrideParams struct {
 //	mobile - Whether to emulate mobile device. This includes viewport meta tag, overlay scrollbars, text autosizing and more.
 func SetDeviceMetricsOverride(width int64, height int64, deviceScaleFactor float64, mobile bool) *SetDeviceMetricsOverrideParams {
 	return &SetDeviceMetricsOverrideParams{
-		Width:             width,
-		Height:            height,
-		DeviceScaleFactor: deviceScaleFactor,
-		Mobile:            mobile,
+		Width:              width,
+		Height:             height,
+		DeviceScaleFactor:  deviceScaleFactor,
+		Mobile:             mobile,
+		DontSetVisibleSize: false,
 	}
 }
 
@@ -295,13 +297,6 @@ func (p SetDeviceMetricsOverrideParams) WithViewport(viewport *page.Viewport) *S
 	return &p
 }
 
-// WithDisplayFeature if set, the display feature of a multi-segment screen.
-// If not set, multi-segment support is turned-off.
-func (p SetDeviceMetricsOverrideParams) WithDisplayFeature(displayFeature *DisplayFeature) *SetDeviceMetricsOverrideParams {
-	p.DisplayFeature = displayFeature
-	return &p
-}
-
 // Do executes Emulation.setDeviceMetricsOverride against the provided context.
 func (p *SetDeviceMetricsOverrideParams) Do(ctx context.Context) (err error) {
 	return cdp.Execute(ctx, CommandSetDeviceMetricsOverride, p, nil)
@@ -353,6 +348,54 @@ func ClearDevicePostureOverride() *ClearDevicePostureOverrideParams {
 // Do executes Emulation.clearDevicePostureOverride against the provided context.
 func (p *ClearDevicePostureOverrideParams) Do(ctx context.Context) (err error) {
 	return cdp.Execute(ctx, CommandClearDevicePostureOverride, nil, nil)
+}
+
+// SetDisplayFeaturesOverrideParams start using the given display features to
+// pupulate the Viewport Segments API. This override can also be set in
+// setDeviceMetricsOverride().
+type SetDisplayFeaturesOverrideParams struct {
+	Features []*DisplayFeature `json:"features"`
+}
+
+// SetDisplayFeaturesOverride start using the given display features to
+// pupulate the Viewport Segments API. This override can also be set in
+// setDeviceMetricsOverride().
+//
+// See: https://chromedevtools.github.io/devtools-protocol/tot/Emulation#method-setDisplayFeaturesOverride
+//
+// parameters:
+//
+//	features
+func SetDisplayFeaturesOverride(features []*DisplayFeature) *SetDisplayFeaturesOverrideParams {
+	return &SetDisplayFeaturesOverrideParams{
+		Features: features,
+	}
+}
+
+// Do executes Emulation.setDisplayFeaturesOverride against the provided context.
+func (p *SetDisplayFeaturesOverrideParams) Do(ctx context.Context) (err error) {
+	return cdp.Execute(ctx, CommandSetDisplayFeaturesOverride, p, nil)
+}
+
+// ClearDisplayFeaturesOverrideParams clears the display features override
+// set with either setDeviceMetricsOverride() or setDisplayFeaturesOverride()
+// and starts using display features from the platform again. Does nothing if no
+// override is set.
+type ClearDisplayFeaturesOverrideParams struct{}
+
+// ClearDisplayFeaturesOverride clears the display features override set with
+// either setDeviceMetricsOverride() or setDisplayFeaturesOverride() and starts
+// using display features from the platform again. Does nothing if no override
+// is set.
+//
+// See: https://chromedevtools.github.io/devtools-protocol/tot/Emulation#method-clearDisplayFeaturesOverride
+func ClearDisplayFeaturesOverride() *ClearDisplayFeaturesOverrideParams {
+	return &ClearDisplayFeaturesOverrideParams{}
+}
+
+// Do executes Emulation.clearDisplayFeaturesOverride against the provided context.
+func (p *ClearDisplayFeaturesOverrideParams) Do(ctx context.Context) (err error) {
+	return cdp.Execute(ctx, CommandClearDisplayFeaturesOverride, nil, nil)
 }
 
 // SetScrollbarsHiddenParams [no description].
@@ -490,15 +533,19 @@ func (p *SetEmulatedVisionDeficiencyParams) Do(ctx context.Context) (err error) 
 }
 
 // SetGeolocationOverrideParams overrides the Geolocation Position or Error.
-// Omitting any of the parameters emulates position unavailable.
+// Omitting latitude, longitude or accuracy emulates position unavailable.
 type SetGeolocationOverrideParams struct {
-	Latitude  float64 `json:"latitude,omitempty,omitzero"`  // Mock latitude
-	Longitude float64 `json:"longitude,omitempty,omitzero"` // Mock longitude
-	Accuracy  float64 `json:"accuracy,omitempty,omitzero"`  // Mock accuracy
+	Latitude         float64 `json:"latitude,omitempty,omitzero"`         // Mock latitude
+	Longitude        float64 `json:"longitude,omitempty,omitzero"`        // Mock longitude
+	Accuracy         float64 `json:"accuracy,omitempty,omitzero"`         // Mock accuracy
+	Altitude         float64 `json:"altitude,omitempty,omitzero"`         // Mock altitude
+	AltitudeAccuracy float64 `json:"altitudeAccuracy,omitempty,omitzero"` // Mock altitudeAccuracy
+	Heading          float64 `json:"heading,omitempty,omitzero"`          // Mock heading
+	Speed            float64 `json:"speed,omitempty,omitzero"`            // Mock speed
 }
 
 // SetGeolocationOverride overrides the Geolocation Position or Error.
-// Omitting any of the parameters emulates position unavailable.
+// Omitting latitude, longitude or accuracy emulates position unavailable.
 //
 // See: https://chromedevtools.github.io/devtools-protocol/tot/Emulation#method-setGeolocationOverride
 //
@@ -522,6 +569,30 @@ func (p SetGeolocationOverrideParams) WithLongitude(longitude float64) *SetGeolo
 // WithAccuracy mock accuracy.
 func (p SetGeolocationOverrideParams) WithAccuracy(accuracy float64) *SetGeolocationOverrideParams {
 	p.Accuracy = accuracy
+	return &p
+}
+
+// WithAltitude mock altitude.
+func (p SetGeolocationOverrideParams) WithAltitude(altitude float64) *SetGeolocationOverrideParams {
+	p.Altitude = altitude
+	return &p
+}
+
+// WithAltitudeAccuracy mock altitudeAccuracy.
+func (p SetGeolocationOverrideParams) WithAltitudeAccuracy(altitudeAccuracy float64) *SetGeolocationOverrideParams {
+	p.AltitudeAccuracy = altitudeAccuracy
+	return &p
+}
+
+// WithHeading mock heading.
+func (p SetGeolocationOverrideParams) WithHeading(heading float64) *SetGeolocationOverrideParams {
+	p.Heading = heading
+	return &p
+}
+
+// WithSpeed mock speed.
+func (p SetGeolocationOverrideParams) WithSpeed(speed float64) *SetGeolocationOverrideParams {
+	p.Speed = speed
 	return &p
 }
 
@@ -1076,6 +1147,8 @@ const (
 	CommandSetDeviceMetricsOverride          = "Emulation.setDeviceMetricsOverride"
 	CommandSetDevicePostureOverride          = "Emulation.setDevicePostureOverride"
 	CommandClearDevicePostureOverride        = "Emulation.clearDevicePostureOverride"
+	CommandSetDisplayFeaturesOverride        = "Emulation.setDisplayFeaturesOverride"
+	CommandClearDisplayFeaturesOverride      = "Emulation.clearDisplayFeaturesOverride"
 	CommandSetScrollbarsHidden               = "Emulation.setScrollbarsHidden"
 	CommandSetDocumentCookieDisabled         = "Emulation.setDocumentCookieDisabled"
 	CommandSetEmitTouchEventsForMouse        = "Emulation.setEmitTouchEventsForMouse"

@@ -130,6 +130,14 @@ const (
 	CommandBluetoothEmulationDisable                         = bluetoothemulation.CommandDisable
 	CommandBluetoothEmulationSimulatePreconnectedPeripheral  = bluetoothemulation.CommandSimulatePreconnectedPeripheral
 	CommandBluetoothEmulationSimulateAdvertisement           = bluetoothemulation.CommandSimulateAdvertisement
+	CommandBluetoothEmulationSimulateGATTOperationResponse   = bluetoothemulation.CommandSimulateGATTOperationResponse
+	CommandBluetoothEmulationAddService                      = bluetoothemulation.CommandAddService
+	CommandBluetoothEmulationRemoveService                   = bluetoothemulation.CommandRemoveService
+	CommandBluetoothEmulationAddCharacteristic               = bluetoothemulation.CommandAddCharacteristic
+	CommandBluetoothEmulationRemoveCharacteristic            = bluetoothemulation.CommandRemoveCharacteristic
+	CommandBluetoothEmulationAddDescriptor                   = bluetoothemulation.CommandAddDescriptor
+	CommandBluetoothEmulationRemoveDescriptor                = bluetoothemulation.CommandRemoveDescriptor
+	EventBluetoothEmulationGattOperationReceived             = "BluetoothEmulation.gattOperationReceived"
 	CommandBrowserSetPermission                              = browser.CommandSetPermission
 	CommandBrowserGrantPermissions                           = browser.CommandGrantPermissions
 	CommandBrowserResetPermissions                           = browser.CommandResetPermissions
@@ -148,6 +156,7 @@ const (
 	CommandBrowserSetDockTile                                = browser.CommandSetDockTile
 	CommandBrowserExecuteBrowserCommand                      = browser.CommandExecuteBrowserCommand
 	CommandBrowserAddPrivacySandboxEnrollmentOverride        = browser.CommandAddPrivacySandboxEnrollmentOverride
+	CommandBrowserAddPrivacySandboxCoordinatorKeyConfig      = browser.CommandAddPrivacySandboxCoordinatorKeyConfig
 	EventBrowserDownloadWillBegin                            = "Browser.downloadWillBegin"
 	EventBrowserDownloadProgress                             = "Browser.downloadProgress"
 	CommandCSSAddRule                                        = css.CommandAddRule
@@ -343,6 +352,8 @@ const (
 	CommandEmulationSetDeviceMetricsOverride                 = emulation.CommandSetDeviceMetricsOverride
 	CommandEmulationSetDevicePostureOverride                 = emulation.CommandSetDevicePostureOverride
 	CommandEmulationClearDevicePostureOverride               = emulation.CommandClearDevicePostureOverride
+	CommandEmulationSetDisplayFeaturesOverride               = emulation.CommandSetDisplayFeaturesOverride
+	CommandEmulationClearDisplayFeaturesOverride             = emulation.CommandClearDisplayFeaturesOverride
 	CommandEmulationSetScrollbarsHidden                      = emulation.CommandSetScrollbarsHidden
 	CommandEmulationSetDocumentCookieDisabled                = emulation.CommandSetDocumentCookieDisabled
 	CommandEmulationSetEmitTouchEventsForMouse               = emulation.CommandSetEmitTouchEventsForMouse
@@ -532,6 +543,9 @@ const (
 	EventNetworkDirectTCPSocketOpened                        = "Network.directTCPSocketOpened"
 	EventNetworkDirectTCPSocketAborted                       = "Network.directTCPSocketAborted"
 	EventNetworkDirectTCPSocketClosed                        = "Network.directTCPSocketClosed"
+	EventNetworkDirectTCPSocketChunkSent                     = "Network.directTCPSocketChunkSent"
+	EventNetworkDirectTCPSocketChunkReceived                 = "Network.directTCPSocketChunkReceived"
+	EventNetworkDirectTCPSocketChunkError                    = "Network.directTCPSocketChunkError"
 	EventNetworkRequestWillBeSentExtraInfo                   = "Network.requestWillBeSentExtraInfo"
 	EventNetworkResponseReceivedExtraInfo                    = "Network.responseReceivedExtraInfo"
 	EventNetworkResponseReceivedEarlyHints                   = "Network.responseReceivedEarlyHints"
@@ -765,6 +779,7 @@ const (
 	CommandStorageSendPendingAttributionReports              = storage.CommandSendPendingAttributionReports
 	CommandStorageGetRelatedWebsiteSets                      = storage.CommandGetRelatedWebsiteSets
 	CommandStorageGetAffectedURLsForThirdPartyCookieMetadata = storage.CommandGetAffectedURLsForThirdPartyCookieMetadata
+	CommandStorageSetProtectedAudienceKAnonymity             = storage.CommandSetProtectedAudienceKAnonymity
 	EventStorageCacheStorageContentUpdated                   = "Storage.cacheStorageContentUpdated"
 	EventStorageCacheStorageListUpdated                      = "Storage.cacheStorageListUpdated"
 	EventStorageIndexedDBContentUpdated                      = "Storage.indexedDBContentUpdated"
@@ -876,7 +891,7 @@ type empty struct{}
 var emptyVal = &empty{}
 
 // UnmarshalMessage unmarshals the message result or params.
-func UnmarshalMessage(msg *Message) (any, error) {
+func UnmarshalMessage(msg *Message, opts ...jsonv2.Options) (any, error) {
 	var v any
 	switch msg.Method {
 	case CommandAccessibilityDisable:
@@ -971,6 +986,22 @@ func UnmarshalMessage(msg *Message) (any, error) {
 		return emptyVal, nil
 	case CommandBluetoothEmulationSimulateAdvertisement:
 		return emptyVal, nil
+	case CommandBluetoothEmulationSimulateGATTOperationResponse:
+		return emptyVal, nil
+	case CommandBluetoothEmulationAddService:
+		v = new(bluetoothemulation.AddServiceReturns)
+	case CommandBluetoothEmulationRemoveService:
+		return emptyVal, nil
+	case CommandBluetoothEmulationAddCharacteristic:
+		v = new(bluetoothemulation.AddCharacteristicReturns)
+	case CommandBluetoothEmulationRemoveCharacteristic:
+		return emptyVal, nil
+	case CommandBluetoothEmulationAddDescriptor:
+		v = new(bluetoothemulation.AddDescriptorReturns)
+	case CommandBluetoothEmulationRemoveDescriptor:
+		return emptyVal, nil
+	case EventBluetoothEmulationGattOperationReceived:
+		v = new(bluetoothemulation.EventGattOperationReceived)
 	case CommandBrowserSetPermission:
 		return emptyVal, nil
 	case CommandBrowserGrantPermissions:
@@ -1006,6 +1037,8 @@ func UnmarshalMessage(msg *Message) (any, error) {
 	case CommandBrowserExecuteBrowserCommand:
 		return emptyVal, nil
 	case CommandBrowserAddPrivacySandboxEnrollmentOverride:
+		return emptyVal, nil
+	case CommandBrowserAddPrivacySandboxCoordinatorKeyConfig:
 		return emptyVal, nil
 	case EventBrowserDownloadWillBegin:
 		v = new(browser.EventDownloadWillBegin)
@@ -1397,6 +1430,10 @@ func UnmarshalMessage(msg *Message) (any, error) {
 		return emptyVal, nil
 	case CommandEmulationClearDevicePostureOverride:
 		return emptyVal, nil
+	case CommandEmulationSetDisplayFeaturesOverride:
+		return emptyVal, nil
+	case CommandEmulationClearDisplayFeaturesOverride:
+		return emptyVal, nil
 	case CommandEmulationSetScrollbarsHidden:
 		return emptyVal, nil
 	case CommandEmulationSetDocumentCookieDisabled:
@@ -1775,6 +1812,12 @@ func UnmarshalMessage(msg *Message) (any, error) {
 		v = new(network.EventDirectTCPSocketAborted)
 	case EventNetworkDirectTCPSocketClosed:
 		v = new(network.EventDirectTCPSocketClosed)
+	case EventNetworkDirectTCPSocketChunkSent:
+		v = new(network.EventDirectTCPSocketChunkSent)
+	case EventNetworkDirectTCPSocketChunkReceived:
+		v = new(network.EventDirectTCPSocketChunkReceived)
+	case EventNetworkDirectTCPSocketChunkError:
+		v = new(network.EventDirectTCPSocketChunkError)
 	case EventNetworkRequestWillBeSentExtraInfo:
 		v = new(network.EventRequestWillBeSentExtraInfo)
 	case EventNetworkResponseReceivedExtraInfo:
@@ -2241,6 +2284,8 @@ func UnmarshalMessage(msg *Message) (any, error) {
 		v = new(storage.GetRelatedWebsiteSetsReturns)
 	case CommandStorageGetAffectedURLsForThirdPartyCookieMetadata:
 		v = new(storage.GetAffectedURLsForThirdPartyCookieMetadataReturns)
+	case CommandStorageSetProtectedAudienceKAnonymity:
+		return emptyVal, nil
 	case EventStorageCacheStorageContentUpdated:
 		v = new(storage.EventCacheStorageContentUpdated)
 	case EventStorageCacheStorageListUpdated:
@@ -2418,7 +2463,7 @@ func UnmarshalMessage(msg *Message) (any, error) {
 	default:
 		return nil, cdp.ErrMsgMissingParamsOrResult
 	}
-	if err := jsonv2.Unmarshal(buf, v); err != nil {
+	if err := jsonv2.Unmarshal(buf, v, opts...); err != nil {
 		return nil, err
 	}
 	return v, nil
