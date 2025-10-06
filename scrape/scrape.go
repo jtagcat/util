@@ -16,6 +16,9 @@ type ScraperOpts struct {
 func InitScraper(ctx context.Context, raw *Scraper) *Scraper {
 	opts := chromedp.DefaultExecAllocatorOptions[:]
 	opts = append(opts, raw.InitExtraAllocatorOpts...)
+	if raw.Debug {
+		opts = append(opts, chromedp.Flag("headless", false))
+	}
 
 	raw.Ctx, _ = chromedp.NewExecAllocator(ctx, opts...)
 
@@ -38,6 +41,7 @@ type Scraper struct {
 	// Only works after InitScraper()
 	InitExtraAllocatorOpts    []chromedp.ExecAllocatorOption
 	InitGlobalConcurrentLimit int
+	Debug                     bool // headless: false
 
 	Ctx            context.Context
 	downloadsLimit chan bool
