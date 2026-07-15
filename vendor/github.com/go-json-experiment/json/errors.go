@@ -10,6 +10,7 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
@@ -28,8 +29,8 @@ import (
 // The name of an unknown JSON object member can be extracted as:
 //
 //	err := ...
-//	var serr json.SemanticError
-//	if errors.As(err, &serr) && serr.Err == json.ErrUnknownName {
+//	serr, ok := errors.AsType[*json.SemanticError](err)
+//	if ok && serr.Err == json.ErrUnknownName {
 //		ptr := serr.JSONPointer // JSON pointer to unknown name
 //		name := ptr.LastToken() // unknown name itself
 //		...
@@ -37,6 +38,10 @@ import (
 //
 // This error is only returned if [RejectUnknownMembers] is true.
 var ErrUnknownName = errors.New("unknown object member name")
+
+// errAmbiguousName indicates a JSON object member could be unmarshal
+// into multiple candidate Go struct fields.
+var errAmbiguousName = errors.New("ambiguous object member name")
 
 const errorPrefix = "json: "
 
@@ -50,7 +55,7 @@ func isSyntacticError(err error) bool {
 	return ok
 }
 
-// isFatalError reports whether this error must terminate asharling.
+// isFatalError reports whether this error must terminate arshaling.
 // All errors are considered fatal unless operating under
 // [jsonflags.ReportErrorsWithLegacySemantics] in which case only
 // syntactic errors and I/O errors are considered fatal.
@@ -74,7 +79,7 @@ type SemanticError struct {
 
 	action string // either "marshal" or "unmarshal"
 
-	// ByteOffset indicates that an error occurred after this byte offset.
+	// ByteOffset indicates that an error occurred at or after this byte offset.
 	ByteOffset int64
 	// JSONPointer indicates that an error occurred within this JSON value
 	// as indicated using the JSON Pointer notation (see RFC 6901).
@@ -98,9 +103,9 @@ type coder interface {
 	Options() Options
 }
 
-// newInvalidFormatError wraps err in a SemanticError because
+// newInvalidFormatError constructs a SemanticError because
 // the current type t cannot handle the provided options format.
-// This error must be called before producing or consuming the next value.
+// This function must be called before producing or consuming the next value.
 //
 // If [jsonflags.ReportErrorsWithLegacySemantics] is specified,
 // then this automatically skips the next value when unmarshaling
@@ -119,7 +124,7 @@ func newInvalidFormatError(c coder, t reflect.Type) error {
 // newMarshalErrorBefore wraps err in a SemanticError assuming that e
 // is positioned right before the next token or value, which causes an error.
 func newMarshalErrorBefore(e *jsontext.Encoder, t reflect.Type, err error) error {
-	return &SemanticError{action: "marshal", GoType: t, Err: err,
+	return &SemanticError{action: "marshal", GoType: t, Err: toUnexpectedEOF(err),
 		ByteOffset:  e.OutputOffset() + int64(export.Encoder(e).CountNextDelimWhitespace()),
 		JSONPointer: jsontext.Pointer(export.Encoder(e).AppendStackPointer(nil, +1))}
 }
@@ -135,7 +140,7 @@ func newUnmarshalErrorBefore(d *jsontext.Decoder, t reflect.Type, err error) err
 	if export.Decoder(d).Flags.Get(jsonflags.ReportErrorsWithLegacySemantics) {
 		k = d.PeekKind()
 	}
-	return &SemanticError{action: "unmarshal", GoType: t, Err: err,
+	return &SemanticError{action: "unmarshal", GoType: t, Err: toUnexpectedEOF(err),
 		ByteOffset:  d.InputOffset() + int64(export.Decoder(d).CountNextDelimWhitespace()),
 		JSONPointer: jsontext.Pointer(export.Decoder(d).AppendStackPointer(nil, +1)),
 		JSONKind:    k}
@@ -158,13 +163,22 @@ func newUnmarshalErrorBeforeWithSkipping(d *jsontext.Decoder, t reflect.Type, er
 // is positioned right after the previous token or value, which caused an error.
 func newUnmarshalErrorAfter(d *jsontext.Decoder, t reflect.Type, err error) error {
 	tokOrVal := export.Decoder(d).PreviousTokenOrValue()
-	return &SemanticError{action: "unmarshal", GoType: t, Err: err,
-		ByteOffset:  d.InputOffset() - int64(len(tokOrVal)),
+	byteOffset := d.InputOffset() - int64(len(tokOrVal))
+	if export.Decoder(d).Flags.Get(jsonflags.ReportErrorsWithLegacySemantics) {
+		// NOTE: In v1, the offset pointed to the end of the bad token or value.
+		if k := jsontext.Value(tokOrVal).Kind(); k == '[' || k == '{' {
+			byteOffset++ // add just the '[' or '{'
+		} else {
+			byteOffset += int64(len(tokOrVal))
+		}
+	}
+	return &SemanticError{action: "unmarshal", GoType: t, Err: toUnexpectedEOF(err),
+		ByteOffset:  byteOffset,
 		JSONPointer: jsontext.Pointer(export.Decoder(d).AppendStackPointer(nil, -1)),
 		JSONKind:    jsontext.Value(tokOrVal).Kind()}
 }
 
-// newUnmarshalErrorAfter wraps err in a SemanticError assuming that d
+// newUnmarshalErrorAfterWithValue wraps err in a SemanticError assuming that d
 // is positioned right after the previous token or value, which caused an error.
 // It also stores a copy of the last JSON value if it is a string or number.
 func newUnmarshalErrorAfterWithValue(d *jsontext.Decoder, t reflect.Type, err error) error {
@@ -207,6 +221,7 @@ func newSemanticErrorWithPosition(c coder, t reflect.Type, prevDepth int, prevLe
 	if serr == nil {
 		serr = &SemanticError{Err: err}
 	}
+	serr.Err = toUnexpectedEOF(serr.Err)
 	var currDepth int
 	var currLength int64
 	var coderState interface{ AppendStackPointer([]byte, int) []byte }
@@ -297,6 +312,13 @@ func collapseSemanticErrors(err error) error {
 	return err
 }
 
+func wrapErrUnsupported(err error, what string) error {
+	if errors.Is(err, errors.ErrUnsupported) {
+		return errors.New(what + " may not return errors.ErrUnsupported")
+	}
+	return err
+}
+
 // errorModalVerb is a modal verb like "cannot" or "unable to".
 //
 // Once per process, Hyrum-proof the error message by deliberately
@@ -378,9 +400,9 @@ func (e *SemanticError) Error() string {
 	}
 
 	// Special handling for unknown names.
-	if e.Err == ErrUnknownName {
+	if e.Err == ErrUnknownName || e.Err == errAmbiguousName {
 		sb.WriteString(": ")
-		sb.WriteString(ErrUnknownName.Error())
+		sb.WriteString(e.Err.Error())
 		sb.WriteString(" ")
 		sb.WriteString(strconv.Quote(e.JSONPointer.LastToken()))
 		if parent := e.JSONPointer.Parent(); parent != "" {
@@ -432,4 +454,12 @@ func newDuplicateNameError(ptr jsontext.Pointer, quotedName []byte, offset int64
 		JSONPointer: ptr,
 		Err:         jsontext.ErrDuplicateName,
 	}
+}
+
+// toUnexpectedEOF converts [io.EOF] to [io.ErrUnexpectedEOF].
+func toUnexpectedEOF(err error) error {
+	if err == io.EOF {
+		return io.ErrUnexpectedEOF
+	}
+	return err
 }
