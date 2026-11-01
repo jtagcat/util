@@ -1,14 +1,12 @@
 name: golangci-lint
 on:
   push:
-  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
-  # https://github.com/golangci/golangci-lint-action
   golangci:
     name: lint
     runs-on: ubuntu-latest
@@ -20,5 +18,4 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
-          only-new-issues: true
+          version: v2.13
